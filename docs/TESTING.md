@@ -40,6 +40,21 @@ Passed on `DaggerPad iPad Pro M2 iOS 18.5`:
 
 Evidence: `Builds/iOS/Evidence/` (ignored build evidence, not release content).
 
+### 2026-07-17 touch UI refinement result
+
+Passed on the same populated `DaggerPad iPad Pro M2 iOS 18.5` Simulator after installing the revised build over the existing app:
+
+- Recovered the relocated Documents path and retained imported data, `Simulator Smoke`, `DaggerPad AutoSave`, and the user-created `my-layout1` layout.
+- Migrated simplified, gesture, and accessibility presets to version 2 while leaving the custom layout unversioned and unchanged.
+- Rendered a balanced simplified HUD with pause, inventory, use, attack, ready weapon, run, joystick, utility drawer, and editor access.
+- Opened and exited inventory and pause screens by touch.
+- Opened the closed-by-default utility drawer and confirmed automap, rest, status, quick save/load, travel, journal, hand-switch, and magic-item actions remain reachable.
+- Opened the touch editor without the prior label collision, selected a control with only its mapping label visible, deselected through empty space, exited with a second empty-space tap, and separately exited through the visible `Done` control.
+- Switched to the accessibility preset and confirmed its deliberately enlarged essentials remain separated; switched to gesture mode and confirmed the redundant attack button is hidden; restored simplified mode before handoff.
+- Confirmed the setup page shows the Files-visible data location instead of the Simulator container UUID.
+
+Before/after and accepted-state evidence: `Builds/iOS/Evidence/ui-refinement-2026-07-17/`.
+
 ## Touch-only gameplay acceptance
 
 - Create and name a character.

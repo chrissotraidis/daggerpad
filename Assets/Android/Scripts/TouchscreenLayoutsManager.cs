@@ -12,6 +12,8 @@ namespace DaggerfallWorkshop.Game
 {
     public class TouchscreenLayoutsManager : MonoBehaviour
     {
+        private const int DaggerPadPresetVersion = 2;
+
         public static TouchscreenLayoutsManager Instance{get; private set;}
 
         public static event System.Action<string> LayoutLoaded;
@@ -56,7 +58,18 @@ namespace DaggerfallWorkshop.Game
         private Dictionary<string, int> acceptedKeyCodes = new Dictionary<string, int>();
 
         public static string LayoutsPath { get { return Path.Combine(Paths.PersistentDataPath, "TouchscreenLayouts"); } }
-        public static string LastSelectedLayout{get{return PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "default-layout");} set {PlayerPrefs.SetString("TouchscreenLayoutsManager_LastSelectedLayout", value);}}
+        public static string LastSelectedLayout
+        {
+            get
+            {
+#if UNITY_IOS
+                return PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "simplified-layout");
+#else
+                return PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "default-layout");
+#endif
+            }
+            set { PlayerPrefs.SetString("TouchscreenLayoutsManager_LastSelectedLayout", value); }
+        }
 
         public TouchscreenLayoutConfiguration CurrentlyLoadedLayout {get{return currentlyLoadedLayout;}}
 
@@ -601,58 +614,121 @@ namespace DaggerfallWorkshop.Game
             string layoutDirectory = Path.Combine(LayoutsPath, layoutName);
             string layoutPath = Path.Combine(layoutDirectory, $"{layoutName}.json");
             if (File.Exists(layoutPath))
-                return;
+            {
+                TouchscreenLayoutConfiguration existingLayout = TouchscreenLayoutConfiguration.ReadFromPath(layoutPath);
+                if (existingLayout != null && existingLayout.daggerPadPresetVersion >= DaggerPadPresetVersion)
+                    return;
+            }
 
             TouchscreenLayoutConfiguration layout = TouchscreenLayoutConfiguration.Deserialize(initialDefaultLayout.text);
             if (layout == null)
                 return;
 
             layout.name = layoutName;
+            layout.daggerPadPresetVersion = DaggerPadPresetVersion;
             layout.gestureCombat = layoutName == "gesture-layout";
             layout.weaponSwingMode = layout.gestureCombat ? 0 : 1;
             bool accessibilityLayout = layoutName == "accessibility-layout";
 
-            if (accessibilityLayout)
+            layout.defaultUIAlpha = accessibilityLayout ? 1f : 0.85f;
+
+            string[] visibleControls =
             {
-                layout.defaultUIAlpha = 1f;
-                foreach (TouchscreenButtonConfiguration button in layout.buttons)
-                {
-                    Vector2 enlargedScale = button.Scale * 1.25f;
-                    button.DefaultScale = enlargedScale;
-                    button.Scale = enlargedScale;
-                }
+                "activate-center-object", "ready-weapon", "toggle-run", "inventory",
+                "escape", "joystick", "drawer", "edit-controls",
+            };
+            string[] drawerControls =
+            {
+                "auto-map", "rest", "quick-save", "quick-load", "status", "travel-map",
+                "logbook", "notebook", "switch-hand", "use-magic-item",
+            };
+            HashSet<string> enabledButtons = new HashSet<string>(visibleControls);
+            foreach (string buttonName in drawerControls)
+                enabledButtons.Add(buttonName);
+            if (!layout.gestureCombat)
+                enabledButtons.Add("swing-weapon");
+
+            foreach (TouchscreenButtonConfiguration button in layout.buttons)
+            {
+                button.DefaultIsEnabled = button.IsEnabled = enabledButtons.Contains(button.Name);
+                ConfigureDaggerPadButton(button, accessibilityLayout);
             }
 
-            if (layout.gestureCombat)
+            TouchscreenButtonConfiguration drawer = layout.buttons.FirstOrDefault(button => button.Name == "drawer");
+            if (drawer != null)
             {
-                TouchscreenButtonConfiguration attack = layout.buttons.FirstOrDefault(button => button.Name == "swing-weapon");
-                if (attack != null)
-                    attack.DefaultIsEnabled = attack.IsEnabled = false;
-            }
-            else
-            {
-                TouchscreenButtonConfiguration drawer = layout.buttons.FirstOrDefault(button => button.Name == "drawer");
-                HashSet<string> enabledButtons = new HashSet<string>()
-                {
-                    "activate-center-object",
-                    "swing-weapon",
-                    "joystick",
-                    "drawer",
-                };
-                if (drawer != null)
-                {
-                    drawer.ButtonsInDrawer.Add("ready-weapon");
-                    drawer.ButtonsInDrawer.Add("toggle-run");
-                    foreach (string buttonName in drawer.ButtonsInDrawer)
-                        enabledButtons.Add(buttonName);
-                }
-
-                foreach (TouchscreenButtonConfiguration button in layout.buttons)
-                    button.DefaultIsEnabled = button.IsEnabled = enabledButtons.Contains(button.Name);
+                drawer.ButtonsInDrawer = drawerControls.ToList();
+                drawer.IsDrawerOpen = false;
+                drawer.DrawerClosedColor = new Color(0.82f, 0.82f, 0.82f, 0.95f);
             }
 
             Directory.CreateDirectory(layoutDirectory);
             TouchscreenLayoutConfiguration.WriteToPath(layout, layoutPath);
+        }
+
+        private static void ConfigureDaggerPadButton(TouchscreenButtonConfiguration button, bool accessibilityLayout)
+        {
+            Vector2 position;
+            Vector2 scale;
+            TouchscreenButtonAnchor anchor;
+
+            switch (button.Name)
+            {
+                case "joystick":
+                    position = new Vector2(65, 70);
+                    scale = new Vector2(340, 340);
+                    anchor = TouchscreenButtonAnchor.BottomLeft;
+                    break;
+                case "activate-center-object":
+                    position = new Vector2(-55, 465);
+                    scale = new Vector2(115, 142);
+                    anchor = TouchscreenButtonAnchor.BottomRight;
+                    break;
+                case "swing-weapon":
+                    position = new Vector2(-175, 275);
+                    scale = new Vector2(235, 235);
+                    anchor = TouchscreenButtonAnchor.BottomRight;
+                    break;
+                case "ready-weapon":
+                    position = new Vector2(-50, 95);
+                    scale = new Vector2(110, 110);
+                    anchor = TouchscreenButtonAnchor.BottomRight;
+                    break;
+                case "toggle-run":
+                    position = new Vector2(-305, 95);
+                    scale = new Vector2(115, 120);
+                    anchor = TouchscreenButtonAnchor.BottomRight;
+                    break;
+                case "inventory":
+                    position = new Vector2(-55, -235);
+                    scale = new Vector2(110, 112);
+                    anchor = TouchscreenButtonAnchor.TopRight;
+                    break;
+                case "escape":
+                    position = new Vector2(-55, -100);
+                    scale = new Vector2(105, 115);
+                    anchor = TouchscreenButtonAnchor.TopRight;
+                    break;
+                case "drawer":
+                    position = new Vector2(35, -205);
+                    scale = new Vector2(110, 98);
+                    anchor = TouchscreenButtonAnchor.TopLeft;
+                    break;
+                case "edit-controls":
+                    position = new Vector2(0, 110);
+                    scale = new Vector2(72, 72);
+                    anchor = TouchscreenButtonAnchor.BottomMiddle;
+                    break;
+                default:
+                    return;
+            }
+
+            if (accessibilityLayout && button.Name != "joystick")
+                scale *= 1.15f;
+
+            button.Anchor = anchor;
+            button.DefaultPosition = button.Position = position;
+            button.DefaultScale = button.Scale = scale;
         }
 
         public void LoadLayout(TouchscreenLayoutConfiguration layoutConfig)
@@ -690,6 +766,7 @@ namespace DaggerfallWorkshop.Game
             string layoutName = name = currentlyLoadedLayout != null ? currentlyLoadedLayout.name : "default-layout";
             var layout = new TouchscreenLayoutConfiguration(){
                 name = layoutName,
+                daggerPadPresetVersion = currentlyLoadedLayout != null ? currentlyLoadedLayout.daggerPadPresetVersion : 0,
                 defaultUIAlpha = TouchscreenInputManager.Instance.UIAlpha,
                 screenTapsActivateCenterObject = VirtualJoystick.JoystickTapsShouldActivateCenterObject,
                 leftJoystickEnabled = TouchscreenButtonEnableDisableManager.Instance.IsLeftJoystickEnabled,
@@ -958,6 +1035,7 @@ namespace DaggerfallWorkshop.Game
     public class TouchscreenLayoutConfiguration
     {
         public string name = "default-layout";
+        public int daggerPadPresetVersion = 0;
         public float defaultUIAlpha = 1f;
         public bool leftJoystickEnabled = true;
         public bool rightJoystickEnabled = true;

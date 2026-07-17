@@ -142,6 +142,9 @@ namespace DaggerfallWorkshop.Game
         }
         private void Update()
         {
+            if (IsEditingControls && Input.GetKeyDown(KeyCode.Escape))
+                SetEditControlsActive(false);
+
             _isInDaggerfallGUI = !IsEditingControls && GameManager.IsGamePaused;
             canvas.enabled = IsTouchscreenActive;
             buttonsCanvas.enabled = IsTouchscreenActive;
@@ -178,6 +181,8 @@ namespace DaggerfallWorkshop.Game
         {
             if (currentlyEditingButton != null)
                 StopEditingCurrentButton();
+            else
+                SetEditControlsActive(false);
         }
         private void OnResetButtonTransformsButtonClicked()
         {
@@ -206,12 +211,17 @@ namespace DaggerfallWorkshop.Game
         public void OnEditTouchscreenControlsButtonClicked(TouchscreenButton editControlsButton)
         {
             if (!editControlsButton.WasDragging)
-            {
-                editControlsCanvas.enabled = !editControlsCanvas.enabled;
-                editControlsBackgroundButton.gameObject.SetActive(editControlsCanvas.enabled);
-                GameManager.Instance.PauseGame(editControlsCanvas.enabled, true);
-                onEditControlsToggled?.Invoke(editControlsCanvas.enabled);
-            }
+                SetEditControlsActive(!editControlsCanvas.enabled);
+        }
+        private void SetEditControlsActive(bool isActive)
+        {
+            if (!isActive)
+                StopEditingCurrentButton();
+
+            editControlsCanvas.enabled = isActive;
+            editControlsBackgroundButton.gameObject.SetActive(isActive);
+            GameManager.Instance.PauseGame(isActive, true);
+            onEditControlsToggled?.Invoke(isActive);
         }
         private void OnAlphaSliderValueChanged(float newVal)
         {
