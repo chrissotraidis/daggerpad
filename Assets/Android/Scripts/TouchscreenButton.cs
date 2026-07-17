@@ -1,0 +1,926 @@
+// Project:         Daggerfall Unity
+// Copyright:       Copyright (C) 2009-2024 Daggerfall Workshop
+// Web Site:        http://www.dfworkshop.net
+// License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
+// Source Code:     https://github.com/Interkarma/daggerfall-unity
+// Original Author: Vivian V Wing (vwing@multitude.city)
+// Contributors:
+// 
+// Notes:
+//
+
+
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+using System.IO;
+
+
+namespace DaggerfallWorkshop.Game
+{
+    public enum TouchscreenButtonType
+    {
+        Button = 0,
+        Joystick = 1,
+        DPad = 2,
+        CameraJoystick = 3,
+        CameraDPad = 4,
+        Drawer = 5,
+    }
+    public enum TouchscreenButtonAnchor
+    { 
+        TopLeft,
+        TopMiddle,
+        TopRight,
+        MiddleLeft,
+        MiddleMiddle,
+        MiddleRight,
+        BottomLeft, 
+        BottomMiddle,
+        BottomRight,
+    }
+    public class TouchscreenButton : Button
+    {
+        public enum ResizeButtonPosition { TopLeft, TopRight, BottomLeft, BottomRight }
+
+        private static bool s_shouldShowLabels = true;
+        private static bool s_hasShownAddToDrawerPopup = false;
+        private static bool s_hasShownRemoveFromDrawerPopup = false;
+        private static TouchscreenButton s_drawerCurrentlyAddingTo = null;
+        private static TouchscreenButton s_drawerCurrentlyRemovingFrom = null;
+        public static bool ButtonsAreSnappedToGrid {
+            get{ return PlayerPrefs.GetInt("TouchscreenButton.ButtonsAreSnappedToGrid", 1) == 1; }
+            set{ PlayerPrefs.SetInt("TouchscreenButton.ButtonsAreSnappedToGrid", value ? 1 : 0); }
+        }
+
+        public event System.Action Resized;
+
+        public bool isButtonDrawer = false;
+        public bool isToggleForEditOnScreenControls = false;
+        public InputManager.Actions myAction = InputManager.Actions.Unknown;
+        public KeyCode myKey = KeyCode.None;
+        public bool WasDragging { get; private set; }
+        public bool DefaultIsEnabled => defaultIsEnabled;
+        public bool CanActionBeEdited{get{return canActionBeEdited;}}
+        public bool CanButtonBeRemoved{get{return canButtonBeRemoved;}}
+        public float JoystickSensitivityHorizontal => joystickSensitivityHorizontal;
+        public float JoystickSensitivityVertical => joystickSensitivityVertical;
+        public bool IsNewlyCreated { get; set; } = false;
+
+        [SerializeField] private bool canActionBeEdited = true;
+        [SerializeField] private bool canButtonBeResized = true;
+        [SerializeField] private bool canButtonBeRemoved = true;
+        [SerializeField] private ResizeButtonPosition resizeButtonPos = ResizeButtonPosition.TopLeft;
+        [SerializeField] private TMPro.TMP_Text label;
+        [SerializeField] private TMPro.TMP_Text text;
+        [SerializeField] private RectTransform resizeButton;
+        [SerializeField] private Button addToDrawerButton;
+        [SerializeField] private Button removeFromDrawerButton;
+        [SerializeField] private RectTransform buttonDrawerParent;
+
+        private RectTransform rectTransform
+        {
+            get { return transform as RectTransform; }
+        }
+        private Camera RenderCam => TouchscreenInputManager.Instance.RenderCamera;
+        private List<GameObject> buttonsInDrawer = new List<GameObject>();
+
+        private InputManager.Actions myLastAction;
+        private KeyCode myLastKey;
+
+        private bool defaultIsEnabled;
+        private Vector2 defaultButtonSizeDelta;
+        private Vector2 defaultButtonPosition;
+        private InputManager.Actions defaultAction = InputManager.Actions.Unknown;
+        private KeyCode defaultKeyCode = KeyCode.None;
+
+        private Vector2 pointerDownPos;
+        private Vector2 pointerDownButtonSizeDelta;
+        private Vector2 pointerDownButtonAnchoredPos;
+
+        private bool pointerDownWasTouchingResizeButton;
+        private bool isPointerDown;
+        private int snapPosScale = 20;
+        private int snapScaleScale = 10;
+        private bool isDrawerOpen = true;
+        private bool shouldDrawerBeOpen = true;
+
+        private bool isUsingBuiltInTextures = true;
+        private bool isUsingBuiltInKnobTexture = true;
+        private string textureFileName = "knob";
+        private string spriteName = "";
+        private string knobFileName = "";
+        private string knobSpriteName = "";
+        private string layoutParentName = "";
+        private float joystickSensitivityHorizontal = 1f;
+        private float joystickSensitivityVertical = 1f;
+        private Color drawerClosedColor = new(.5f, .5f, .5f, 1f);
+        private Color spriteColor = Color.white;
+        private bool skipClickOnEditControlsButton = false;
+
+        protected override void Start()
+        {
+            base.Start();
+            if (Application.isPlaying)
+            {
+                // snapScale = Mathf.RoundToInt(k_defaultSnapScaleAt1080p * (Mathf.Min(AScreen.height, AScreen.width) / 1080f));
+                //LoadSavedSettingsDeprecated();
+                addToDrawerButton.onClick.AddListener(OnAddToDrawerButtonClicked);
+                removeFromDrawerButton.onClick.AddListener(OnRemoveFromDrawerButtonClicked);
+                TouchscreenInputManager.Instance.onEditControlsToggled += Instance_onEditControlsToggled;
+                TouchscreenInputManager.Instance.onCurrentlyEditingButtonChanged += Instance_onCurrentlyEditingButtonChanged;
+                TouchscreenInputManager.Instance.onResetButtonActionsToDefaultValues += Instance_onResetButtonActionsToDefaultValues;
+                TouchscreenInputManager.Instance.onResetButtonTransformsToDefaultValues += Instance_onResetButtonTransformsToDefaultValues;
+            }
+        }
+        protected override void OnDestroy()
+        {
+            if (TouchscreenInputManager.Instance)
+            {
+                TouchscreenInputManager.Instance.onEditControlsToggled -= Instance_onEditControlsToggled;
+                TouchscreenInputManager.Instance.onCurrentlyEditingButtonChanged -= Instance_onCurrentlyEditingButtonChanged;
+                TouchscreenInputManager.Instance.onResetButtonActionsToDefaultValues -= Instance_onResetButtonActionsToDefaultValues;
+                TouchscreenInputManager.Instance.onResetButtonTransformsToDefaultValues -= Instance_onResetButtonTransformsToDefaultValues;
+            }
+        }
+        private void Update()
+        {
+            UpdateResizeButtonPosition();
+            UpdateLabelText();
+
+            if (Application.isPlaying)
+            {
+                if (myLastAction != myAction)
+                {
+                    myLastAction = myAction;
+                }
+                if (myLastKey != myKey)
+                {
+                    myLastKey = myKey;
+                }
+
+                UpdateButtonTransform();
+            }
+        }
+        public void ApplyConfiguration(TouchscreenButtonConfiguration config)
+        {
+            config = ConvertButtonConfigToLatestVersion(config);
+            SetButtonAnchor(config.Anchor, false);
+            SetLabelAnchor(config.LabelAnchor);
+            rectTransform.anchoredPosition = config.Position;
+            SetButtonType(config.ButtonType, config.ButtonsInDrawer);
+            defaultAction = config.DefaultActionMapping;
+            defaultKeyCode = config.DefaultKeyCodeMapping;
+            myAction = config.ActionMapping;
+            myKey = config.KeyCodeMapping;
+            myLastAction = myAction;
+            myLastKey = myKey;
+            layoutParentName = config.LayoutParentName;
+
+            defaultIsEnabled = config.DefaultIsEnabled;
+            defaultButtonPosition = config.DefaultPosition;
+            defaultButtonSizeDelta = config.DefaultScale;
+            rectTransform.sizeDelta = config.Scale;
+            canButtonBeRemoved = config.CanButtonBeRemoved;
+            canActionBeEdited = config.CanButtonBeEdited;
+            canButtonBeResized = config.CanButtonBeResized;
+            gameObject.name = config.Name;
+            isUsingBuiltInTextures = config.UsesBuiltInTexture;
+            isUsingBuiltInKnobTexture = config.UsesBuiltInKnobTexture;
+            shouldDrawerBeOpen = config.IsDrawerOpen;
+            textureFileName = config.TextureFileName;
+            spriteName = config.SpriteName;
+            knobFileName = config.KnobTextureFileName;
+            knobSpriteName = config.KnobSpriteName;
+            joystickSensitivityHorizontal = config.JoystickSensitivityHorizontal;
+            joystickSensitivityVertical = config.JoystickSensitivityVertical;
+            ((Image)targetGraphic).sprite = config.LoadSprite(false);
+            targetGraphic.rectTransform.anchorMin = Vector2.zero;
+            targetGraphic.rectTransform.anchorMax = Vector2.one;
+            targetGraphic.rectTransform.sizeDelta = Vector2.zero;
+            transform.Find("Knob").GetComponent<Image>().sprite = config.LoadSprite(true);
+
+            gameObject.SetActive(config.IsEnabled);
+            ((Image)targetGraphic).color = spriteColor = config.SpriteColor;
+            transform.Find("Knob").GetComponent<Image>().color = config.KnobSpriteColor;
+            drawerClosedColor = config.DrawerClosedColor;
+            text.text = config.Text;
+            text.color = config.TextColor;
+            text.enabled = !string.IsNullOrEmpty(text.text);
+            
+            SetResizeButtonActive();
+            isToggleForEditOnScreenControls = config.IsToggleForEditOnScreenControls;
+            UpdateLabelText();
+
+            if (config.IsToggleForEditOnScreenControls)
+                Debug.Log($"{config.Position} {config.DefaultPosition} {rectTransform.anchoredPosition}");
+
+            // zero-out the z position
+            rectTransform.transform.localPosition = new Vector3(rectTransform.transform.localPosition.x, rectTransform.transform.localPosition.y, 0);
+
+            SetDrawerOpenBasedOnEditMode();
+        }
+        public TouchscreenButtonConfiguration GetCurrentConfiguration(string layoutParentName = null)
+        {
+            if(IsNewlyCreated){
+                defaultButtonPosition = rectTransform.anchoredPosition;
+                defaultButtonSizeDelta = rectTransform.sizeDelta;
+                defaultIsEnabled = gameObject.activeSelf;
+                defaultKeyCode = myKey;
+                defaultAction = myAction;
+            }
+            TouchscreenButtonConfiguration config = new(
+                gameObject.name, defaultButtonPosition, defaultButtonSizeDelta, GetCurrentButtonType(), defaultIsEnabled,
+                isUsingBuiltInTextures, Path.GetFileName(textureFileName), spriteName, Path.GetFileName(knobFileName), knobSpriteName, defaultAction, 
+                defaultKeyCode, GetAnchorType(rectTransform.anchorMin), GetAnchorType(label.rectTransform.anchorMin), canActionBeEdited, 
+                canButtonBeRemoved, canButtonBeResized, buttonsInDrawer.Where(p => p).Select(s => s.name).ToList(), text.text, isToggleForEditOnScreenControls, 
+                layoutParentName ?? this.layoutParentName, isUsingBuiltInKnobTexture, joystickSensitivityHorizontal, joystickSensitivityVertical, TouchscreenButtonConfiguration.LatestVersion
+            )
+            {
+                IsEnabled = gameObject.activeSelf,
+                Position = GetAnchoredPositionRelativeToButtonsParent(),
+                Scale = rectTransform.sizeDelta,
+                ActionMapping = myAction,
+                KeyCodeMapping = myKey,
+                SpriteColor = spriteColor,
+                DrawerClosedColor = drawerClosedColor,
+                KnobSpriteColor = transform.Find("Knob").GetComponent<Image>().color,
+                TextColor = text.color,
+                IsDrawerOpen = shouldDrawerBeOpen
+            };
+
+            return config;
+        }
+        public static TouchscreenButtonConfiguration ConvertButtonConfigToLatestVersion(TouchscreenButtonConfiguration buttonConfig)
+        {
+            // Convert the button config to the latest version if needed
+            if (buttonConfig.Version != TouchscreenButtonConfiguration.LatestVersion)
+            {
+                Debug.Log("Upgrading button " + buttonConfig.Name + " from version " + buttonConfig.Version + " to " + TouchscreenButtonConfiguration.LatestVersion);
+                buttonConfig.Version = TouchscreenButtonConfiguration.LatestVersion;
+                if(!string.IsNullOrEmpty(buttonConfig.TextureFilepathDeprecated)){
+                    buttonConfig.TextureFileName = buttonConfig.TextureFilepathDeprecated;
+                    buttonConfig.TextureFilepathDeprecated = "";
+                }
+                if(!string.IsNullOrEmpty(buttonConfig.KnobTextureFilepathDeprecated)){
+                    buttonConfig.KnobTextureFileName = buttonConfig.KnobTextureFilepathDeprecated;
+                    buttonConfig.KnobTextureFilepathDeprecated = "";
+                }
+                // old knob texture name to new knob texture name
+                if(buttonConfig.UsesBuiltInTexture && buttonConfig.TextureFilePath == "linux_buttons_sheet") {
+                    buttonConfig.TextureFileName = "linux_buttons";
+                    buttonConfig.SpriteName = "button_blank";
+                    buttonConfig.KnobTextureFileName = "linux_buttons";
+                    buttonConfig.KnobSpriteName = "knob";
+                }
+                // set default position and scale to current position and scale if they are zero
+                if(buttonConfig.DefaultPosition.Approximately(Vector2.zero) && buttonConfig.DefaultScale.Approximately(Vector2.zero)
+                || buttonConfig.DefaultPosition.Approximately(new Vector2(70, -100)) && buttonConfig.DefaultScale.Approximately(new Vector2(70, -100))){
+                    buttonConfig.DefaultPosition = buttonConfig.Position;
+                    buttonConfig.DefaultScale = buttonConfig.Scale;
+                }
+            }
+            return buttonConfig;
+        }
+        private Vector2 GetAnchoredPositionRelativeToButtonsParent()
+        {
+            RectTransform myParent = transform.parent as RectTransform;
+            Vector2 anchoredPos = rectTransform.anchoredPosition;
+            if(myParent != TouchscreenButtonEnableDisableManager.Instance.ButtonsParent && myParent != TouchscreenButtonEnableDisableManager.Instance.ButtonsPoolParent){
+                rectTransform.SetParent(TouchscreenButtonEnableDisableManager.Instance.ButtonsParent, true);
+                rectTransform.ForceUpdateRectTransforms();
+                anchoredPos = rectTransform.anchoredPosition;
+                rectTransform.SetParent(myParent, true);
+                rectTransform.ForceUpdateRectTransforms();
+            }
+            return anchoredPos;
+        }
+        private Vector2 GetDefaultPositionRelativeToCurrentParent()
+        {
+            RectTransform myParent = transform.parent as RectTransform;
+            Vector2 defaultPos = defaultButtonPosition;
+            if(myParent != TouchscreenButtonEnableDisableManager.Instance.ButtonsParent && myParent != TouchscreenButtonEnableDisableManager.Instance.ButtonsPoolParent){
+                Vector2 currentAnchoredPos = rectTransform.anchoredPosition;
+                rectTransform.SetParent(TouchscreenButtonEnableDisableManager.Instance.ButtonsParent, true);
+                rectTransform.ForceUpdateRectTransforms();
+                rectTransform.anchoredPosition = defaultButtonPosition;
+                rectTransform.SetParent(myParent, true);
+                rectTransform.ForceUpdateRectTransforms();
+                defaultPos = rectTransform.anchoredPosition;
+                rectTransform.anchoredPosition = currentAnchoredPos;
+                rectTransform.ForceUpdateRectTransforms();
+            }
+            return defaultPos;
+        }
+        private TouchscreenButtonType GetCurrentButtonType()
+        {
+            var dpadOrJoystick = GetComponent<StaticTouchscreenJoystickOrDPad>();
+            if (isButtonDrawer)
+                return TouchscreenButtonType.Drawer;
+            else if (dpadOrJoystick.enabled)
+            {
+                if (dpadOrJoystick.horizontalAxisAction == InputManager.AxisActions.MovementHorizontal)
+                    return dpadOrJoystick.isDPad ? TouchscreenButtonType.DPad : TouchscreenButtonType.Joystick;
+                else
+                    return dpadOrJoystick.isDPad ? TouchscreenButtonType.CameraDPad : TouchscreenButtonType.CameraJoystick;
+            }
+            else
+                return TouchscreenButtonType.Button;
+        }
+        private TouchscreenButtonAnchor GetAnchorType(Vector2 anchor)
+        {
+            if (Mathf.Approximately(anchor.x, 0) && Mathf.Approximately(anchor.y, 0))
+                return TouchscreenButtonAnchor.BottomLeft;
+            else if (Mathf.Approximately(anchor.x, 0.5f) && Mathf.Approximately(anchor.y, 0))
+                return TouchscreenButtonAnchor.BottomMiddle;
+            else if (Mathf.Approximately(anchor.x, 1) && Mathf.Approximately(anchor.y, 0))
+                return TouchscreenButtonAnchor.BottomRight;
+            else if (Mathf.Approximately(anchor.x, 0) && Mathf.Approximately(anchor.y, 0.5f))
+                return TouchscreenButtonAnchor.MiddleLeft;
+            else if (Mathf.Approximately(anchor.x, 0.5f) && Mathf.Approximately(anchor.y, 0.5f))
+                return TouchscreenButtonAnchor.MiddleMiddle;
+            else if (Mathf.Approximately(anchor.x, 1) && Mathf.Approximately(anchor.y, 0.5f))
+                return TouchscreenButtonAnchor.MiddleRight;
+            else if (Mathf.Approximately(anchor.x, 0) && Mathf.Approximately(anchor.y, 1))
+                return TouchscreenButtonAnchor.TopLeft;
+            else if (Mathf.Approximately(anchor.x, 0.5f) && Mathf.Approximately(anchor.y, 1))
+                return TouchscreenButtonAnchor.TopMiddle;
+            else if (Mathf.Approximately(anchor.x, 1) && Mathf.Approximately(anchor.y, 1))
+                return TouchscreenButtonAnchor.TopRight;
+            else
+                return TouchscreenButtonAnchor.BottomMiddle;
+        }
+        public void SetButtonType(TouchscreenButtonType buttonType, List<string> buttonsInDrawer = null)
+        {
+            if(buttonType != TouchscreenButtonType.Drawer){
+                ClearButtonsFromDrawer();
+                isButtonDrawer = false;
+            }
+            StaticTouchscreenJoystickOrDPad joystickOrDPad = GetComponent<StaticTouchscreenJoystickOrDPad>();
+            joystickOrDPad.knob.gameObject.SetActive(false);
+            joystickOrDPad.enabled = false;
+            switch(buttonType){
+                case TouchscreenButtonType.Button:
+                    break;
+                case TouchscreenButtonType.Drawer:
+                    isButtonDrawer = true;
+                    if (buttonsInDrawer != null){
+                        List<GameObject> buttonGOsInDrawer = new();
+                        buttonGOsInDrawer.AddRange(TouchscreenButtonEnableDisableManager.Instance.GetAllButtons().Where(p => buttonsInDrawer.Contains(p.name)).Select(s => s.gameObject));
+                        buttonGOsInDrawer.ForEach(delegate(GameObject bgo)
+                        {
+                            RectTransform brtf = bgo.GetComponent<RectTransform>();
+                            TouchscreenButton b = bgo.GetComponent<TouchscreenButton>();
+                            brtf.SetParent(buttonDrawerParent, true);
+                            brtf.ForceUpdateRectTransforms();
+                        });
+                        this.buttonsInDrawer = buttonGOsInDrawer;
+                    }
+                    SetDrawerOpenBasedOnEditMode();
+                    break;
+                case TouchscreenButtonType.DPad:
+                    joystickOrDPad.verticalAxisAction = InputManager.AxisActions.MovementVertical;
+                    joystickOrDPad.horizontalAxisAction = InputManager.AxisActions.MovementHorizontal;
+                    joystickOrDPad.deadzone = 0.4f;
+                    joystickOrDPad.hideKnobWhenUntouched = true;
+                    joystickOrDPad.isDPad = true;
+                    joystickOrDPad.enabled = true;
+                    break;
+                case TouchscreenButtonType.CameraDPad:
+                    joystickOrDPad.verticalAxisAction = InputManager.AxisActions.CameraVertical;
+                    joystickOrDPad.horizontalAxisAction = InputManager.AxisActions.CameraHorizontal;
+                    joystickOrDPad.deadzone = 0.4f;
+                    joystickOrDPad.hideKnobWhenUntouched = true;
+                    joystickOrDPad.isDPad = true;
+                    joystickOrDPad.enabled = true;
+                    break;
+                case TouchscreenButtonType.Joystick:
+                    joystickOrDPad.verticalAxisAction = InputManager.AxisActions.MovementVertical;
+                    joystickOrDPad.horizontalAxisAction = InputManager.AxisActions.MovementHorizontal;
+                    joystickOrDPad.deadzone = 0.12f;
+                    joystickOrDPad.hideKnobWhenUntouched = false;
+                    joystickOrDPad.isDPad = false;
+                    joystickOrDPad.enabled = true;
+                    joystickOrDPad.knob.gameObject.SetActive(true);
+                    break;
+                case TouchscreenButtonType.CameraJoystick:
+                    joystickOrDPad.verticalAxisAction = InputManager.AxisActions.CameraVertical;
+                    joystickOrDPad.horizontalAxisAction = InputManager.AxisActions.CameraHorizontal;
+                    joystickOrDPad.deadzone = 0.12f;
+                    joystickOrDPad.hideKnobWhenUntouched = false;
+                    joystickOrDPad.isDPad = false;
+                    joystickOrDPad.enabled = true;
+                    joystickOrDPad.knob.gameObject.SetActive(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+        public void CloseDrawer(){
+            isDrawerOpen = false;
+            buttonDrawerParent.gameObject.SetActive(false);
+            ((Image)targetGraphic).color = drawerClosedColor;
+        }
+        public void OpenDrawer(){
+            isDrawerOpen = true;
+            buttonDrawerParent.gameObject.SetActive(true);
+            ((Image)targetGraphic).color = spriteColor;
+        }
+
+        public void AddButtonToDrawer(GameObject buttonGO)
+        {
+            if(buttonsInDrawer.Any(p => p.name == buttonGO.name) || buttonGO == gameObject)
+                return;
+            buttonsInDrawer.Add(buttonGO);
+            buttonGO.GetComponent<RectTransform>().SetParent(buttonDrawerParent, true);
+            buttonGO.GetComponent<RectTransform>().ForceUpdateRectTransforms();
+        }
+        public void RemoveButtonFromDrawer(GameObject buttonGO)
+        {
+            if(!buttonsInDrawer.Any(p => p.name == buttonGO.name) || buttonGO == gameObject)
+                return;
+            // int buttonInDrawerIndex = buttonsInDrawer.FindIndex(p => p.name == buttonName);
+            Transform buttonsParent = transform.parent;
+            while(buttonsParent.TryGetComponent(out TouchscreenButton b))
+                buttonsParent = buttonsParent.parent;
+            buttonGO.GetComponent<RectTransform>().SetParent(buttonsParent, true);
+            buttonGO.GetComponent<RectTransform>().ForceUpdateRectTransforms();
+            
+            buttonsInDrawer.Remove(buttonGO);
+        }
+        public void ClearButtonsFromDrawer()
+        {
+            List<GameObject> buttonsInDrawerCopy = new List<GameObject>(buttonsInDrawer);
+            foreach(GameObject bgo in buttonsInDrawerCopy){
+                RemoveButtonFromDrawer(bgo);
+            }
+        }
+        private void SetDrawerOpenBasedOnEditMode()
+        {
+            if (!isButtonDrawer)
+                return;
+            if (TouchscreenInputManager.Instance.IsEditingControls || shouldDrawerBeOpen)
+                OpenDrawer();
+            else
+                CloseDrawer();
+        }
+        private void UpdateLabelText()
+        {
+            if (!label)
+                return;
+
+            if (isToggleForEditOnScreenControls)
+                label.text = "Toggle Edit Mode";
+            else if (myKey == KeyCode.None && myAction == InputManager.Actions.Unknown)
+                label.text = "";
+            else if (myKey == KeyCode.None)
+                label.text = myAction.ToString();
+            else if (myAction == InputManager.Actions.Unknown)
+                label.text = myKey.ToString();
+            else
+                label.text = $"{myAction} + {myKey}";
+
+            if (!canActionBeEdited)
+                label.enabled = !Application.isPlaying || TouchscreenInputManager.Instance.IsEditingControls;
+            else if (!Application.isPlaying || TouchscreenInputManager.Instance.IsEditingControls && s_shouldShowLabels)
+            {
+                label.enabled = true;
+            }
+            else
+                label.enabled = false;
+        }
+        private void UpdateButtonTransform()
+        {
+            if (!TouchscreenInputManager.Instance.IsEditingControls || !isPointerDown)
+            {
+                // hacky fix for button drawer contents having a weird far-away z position
+                if(!Mathf.Approximately(transform.localPosition.z, 0))
+                    transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, 0);
+                // return early if not editing controls
+                return;
+            }
+
+            Vector2 pointerDelta = (Vector2)Input.mousePosition - pointerDownPos;
+
+            if (pointerDownWasTouchingResizeButton)
+            {
+                // resize button
+                Vector2 newSize = pointerDownButtonSizeDelta + 2f * Mathf.Max(pointerDelta.x, pointerDelta.y) * pointerDownButtonSizeDelta.normalized;
+                if (newSize.x < defaultButtonSizeDelta.x / 2f)
+                    newSize = defaultButtonSizeDelta / 2f;
+                else if (newSize.x > defaultButtonSizeDelta.x * 5f)
+                    newSize = defaultButtonSizeDelta * 5f;
+                newSize.x = Mathf.RoundToInt(newSize.x / snapScaleScale) * snapScaleScale;
+                newSize.y = Mathf.RoundToInt(newSize.y / snapScaleScale) * snapScaleScale;
+
+                if (Mathf.Abs(newSize.x - defaultButtonSizeDelta.x) < snapScaleScale*1.1f)
+                    newSize = defaultButtonSizeDelta;
+
+                Vector2 lastSize = rectTransform.sizeDelta;
+                rectTransform.sizeDelta = newSize;
+                if (!Mathf.Approximately(lastSize.x, newSize.x))
+                    Resized?.Invoke();
+            }
+            else
+            {
+                // Move the button's position
+                Vector2 lastAnchoredPos = rectTransform.anchoredPosition;
+
+                Vector2 newPos = pointerDownButtonAnchoredPos + pointerDelta;
+                if(ButtonsAreSnappedToGrid){
+                    Vector2 newPosInCanvasSpace = GetAnchoredPositionRelativeToButtonsParent() + pointerDelta;
+                    Vector2 defaultPosInLocalSpace = GetDefaultPositionRelativeToCurrentParent();
+                    // snap to grid
+                    if (Vector2.Distance(newPosInCanvasSpace, defaultButtonPosition) < snapPosScale*.8f)
+                        newPos = defaultPosInLocalSpace;
+                    else {
+                        newPos.x = Mathf.RoundToInt(newPos.x / snapPosScale) * snapPosScale;
+                        newPos.y = Mathf.RoundToInt(newPos.y / snapPosScale) * snapPosScale;
+                    }
+                }
+
+                // clamp rect to screen bounds
+                rectTransform.anchoredPosition = newPos;
+
+                Rect screenRect = UnityUIUtils.GetScreenspaceRect(rectTransform, RenderCam);
+
+                if (screenRect.xMin < 0)
+                {
+                    newPos.x = lastAnchoredPos.x;
+                }
+                if (screenRect.yMin < 0)
+                {
+                    newPos.y = lastAnchoredPos.y;
+                }
+                if (screenRect.xMax >= AScreen.width)
+                {
+                    newPos.x = lastAnchoredPos.x;
+                }
+                if (screenRect.yMax >= AScreen.height)
+                {
+                    newPos.y = lastAnchoredPos.y;
+                }
+                rectTransform.anchoredPosition = newPos;
+
+                WasDragging = WasDragging || !rectTransform.anchoredPosition.Approximately(lastAnchoredPos);
+            }
+        }
+
+        public void SetButtonAnchor(TouchscreenButtonAnchor anchor, bool positionStays = true)
+        {
+            Vector2 oldPivot = rectTransform.pivot;
+            Vector3 oldWorldPosition = rectTransform.position;
+
+            switch(anchor)
+            {
+                case TouchscreenButtonAnchor.TopLeft:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(0, 1);
+                    break;
+                case TouchscreenButtonAnchor.TopMiddle:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(.5f, 1);
+                    break;
+                case TouchscreenButtonAnchor.TopRight:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(1, 1);
+                    break;
+                case TouchscreenButtonAnchor.MiddleLeft:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(0, .5f);
+                    break;
+                case TouchscreenButtonAnchor.MiddleMiddle:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(.5f, .5f);
+                    break;
+                case TouchscreenButtonAnchor.MiddleRight:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(1, .5f);
+                    break;
+                case TouchscreenButtonAnchor.BottomLeft:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(0, 0);
+                    break;
+                case TouchscreenButtonAnchor.BottomMiddle:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(.5f, 0);
+                    break;
+                case TouchscreenButtonAnchor.BottomRight:
+                    rectTransform.anchorMin = rectTransform.anchorMax = rectTransform.pivot = new Vector2(1, 0);
+                    break;
+                default:
+                    break;
+            }
+
+            if (positionStays)
+            {
+                // change position of the button so that it returns to the same spot as before
+                Vector2 newPivot = rectTransform.pivot;
+                Vector2 size = rectTransform.rect.size;
+                Vector2 pivotDelta = newPivot - oldPivot;
+                Vector2 pivotDeltaPixels = new Vector2(pivotDelta.x * size.x, pivotDelta.y * size.y);
+                
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+                rectTransform.position = oldWorldPosition;
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+                rectTransform.anchoredPosition += pivotDeltaPixels;
+            }
+        }
+
+        public void SetLabelAnchor(TouchscreenButtonAnchor anchor)
+        {
+            switch(anchor)
+            {
+                case TouchscreenButtonAnchor.TopLeft:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0, 1);
+                    label.rectTransform.pivot = new Vector2(0, 0);
+                    label.alignment = TMPro.TextAlignmentOptions.BottomLeft;
+                    break;
+                case TouchscreenButtonAnchor.TopMiddle:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(.5f, 1);
+                    label.rectTransform.pivot = new Vector2(.5f, 0);
+                    label.alignment = TMPro.TextAlignmentOptions.Bottom;
+                    break;
+                case TouchscreenButtonAnchor.TopRight:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(1, 1);
+                    label.rectTransform.pivot = new Vector2(1, 0);
+                    label.alignment = TMPro.TextAlignmentOptions.BottomRight;
+                    break;
+                case TouchscreenButtonAnchor.MiddleLeft:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0, .5f);
+                    label.rectTransform.pivot = new Vector2(1, .5f);
+                    label.alignment = TMPro.TextAlignmentOptions.Right;
+                    break;
+                case TouchscreenButtonAnchor.MiddleMiddle:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(.5f, .5f);
+                    label.rectTransform.pivot = new Vector2(.5f, .5f);
+                    label.alignment = TMPro.TextAlignmentOptions.Center;
+                    break;
+                case TouchscreenButtonAnchor.MiddleRight:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(1, .5f);
+                    label.rectTransform.pivot = new Vector2(0, .5f);
+                    label.alignment = TMPro.TextAlignmentOptions.Left;
+                    break;
+                case TouchscreenButtonAnchor.BottomLeft:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0, 0);
+                    label.rectTransform.pivot = new Vector2(0, 1);
+                    label.alignment = TMPro.TextAlignmentOptions.TopLeft;
+                    break;
+                case TouchscreenButtonAnchor.BottomMiddle:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(.5f, 0);
+                    label.rectTransform.pivot = new Vector2(.5f, 1);
+                    label.alignment = TMPro.TextAlignmentOptions.Top;
+                    break;
+                case TouchscreenButtonAnchor.BottomRight:
+                    label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(1, 0);
+                    label.rectTransform.pivot = new Vector2(1, 1);
+                    label.alignment = TMPro.TextAlignmentOptions.TopRight;
+                    break;
+                default:
+                    break;
+            }
+        }
+        public void SetJoystickHorizontalSensitivity(float sensitivity)
+        {
+            joystickSensitivityHorizontal = sensitivity;
+        }
+        public void SetJoystickVerticalSensitivity(float sensitivity)
+        {
+            joystickSensitivityVertical = sensitivity;
+        }
+        private void UpdateResizeButtonPosition()
+        {
+            if (resizeButton && resizeButton.gameObject.activeSelf)
+            {
+                switch (resizeButtonPos)
+                {
+                    case ResizeButtonPosition.TopLeft:
+                        resizeButton.anchorMax = resizeButton.anchorMin = Vector2.up;
+                        resizeButton.pivot = Vector2.right;
+                        break;
+                    case ResizeButtonPosition.TopRight:
+                        resizeButton.anchorMax = resizeButton.anchorMin = Vector2.one;
+                        resizeButton.pivot = Vector2.zero;
+                        break;
+                    case ResizeButtonPosition.BottomLeft:
+                        resizeButton.anchorMax = resizeButton.anchorMin = Vector2.zero;
+                        resizeButton.pivot = Vector2.one;
+                        break;
+                    case ResizeButtonPosition.BottomRight:
+                        resizeButton.anchorMax = resizeButton.anchorMin = Vector2.right;
+                        resizeButton.pivot = Vector2.up;
+                        break;
+                    default:
+                        break;
+                }
+                resizeButton.anchoredPosition = Vector2.zero;
+            }
+        }
+        private bool IsPointerTouchingResizeButton(PointerEventData pointerData)
+        {
+            if (!resizeButton || !resizeButton.gameObject.activeSelf)
+                return false;
+            return UnityUIUtils.GetScreenspaceRect(resizeButton, RenderCam).Contains(pointerData.position);
+        }
+
+        private void OnPointerDownDuringEditMode(PointerEventData eventData)
+        {
+            s_shouldShowLabels = !canActionBeEdited;
+            transform.SetAsLastSibling();
+            pointerDownWasTouchingResizeButton = IsPointerTouchingResizeButton(eventData);
+
+            if (!pointerDownWasTouchingResizeButton)
+                TouchscreenInputManager.Instance.EditTouchscreenButton(this);
+        }
+        private void OnPointerUpDuringEditMode(PointerEventData eventData)
+        {
+            if(!rectTransform.anchoredPosition.Approximately(pointerDownButtonAnchoredPos))
+            {
+                TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+            }
+            if (!rectTransform.sizeDelta.Approximately(pointerDownButtonSizeDelta))
+            {
+                TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+            }
+        }
+        private void OnPointerDownDuringGameplay(PointerEventData eventData)
+        {
+            if(isButtonDrawer){
+                if(isDrawerOpen){
+                    shouldDrawerBeOpen = false;
+                    CloseDrawer();
+                }
+                else{
+                    shouldDrawerBeOpen = true;
+                    OpenDrawer();
+                }
+                // gotta save the drawer state
+                TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+            }
+            if (myAction > InputManager.Actions.Unknown) // if I have a custom action, add the action to the input manager manually
+            {
+                InputManager.Instance.AddAction(myAction);
+            }
+            else // else use our touchscreen input manager normally
+            {
+                KeyCode actionKey = InputManager.Instance.GetBinding(myAction);
+                TouchscreenInputManager.SetKey(actionKey, true);
+            }
+            if (myKey != KeyCode.None)
+                TouchscreenInputManager.SetKey(myKey, true);
+        }
+        private void OnPointerUpDuringGameplay(PointerEventData eventData)
+        {
+            KeyCode actionKey = InputManager.Instance.GetBinding(myAction);
+            TouchscreenInputManager.SetKey(actionKey, false);
+            if(myKey != KeyCode.None)
+                TouchscreenInputManager.SetKey(myKey, false);
+        }
+
+        #region overrides
+        
+        public override void OnPointerDown(PointerEventData eventData)
+        {
+            Debug.Log("OnPointerDown " + gameObject.name);
+            if(s_drawerCurrentlyAddingTo)
+            {
+                // if it's the edit controls button, don't add it to the drawer
+                if(isToggleForEditOnScreenControls){
+                    TouchscreenInputManager.Instance.PopupMessage.Open("You cannot add the Edit Controls button to a drawer.", null, null, "Okay", null);
+                    skipClickOnEditControlsButton = true;
+                }
+                // else add this button to the drawer
+                else if(this != s_drawerCurrentlyAddingTo){
+                    s_drawerCurrentlyAddingTo.AddButtonToDrawer(gameObject);
+                    TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+                }
+                s_drawerCurrentlyAddingTo = null;
+                // restore fade of all buttons
+                TouchscreenButtonEnableDisableManager.Instance.GetAllButtons().ForEach(p => p.image.color = new Color(1, 1, 1, 1));
+            }
+            else if(s_drawerCurrentlyRemovingFrom)
+            {
+                // remove this button from the drawer
+                if(this != s_drawerCurrentlyRemovingFrom){
+                    s_drawerCurrentlyRemovingFrom.RemoveButtonFromDrawer(gameObject);
+                    TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+                }
+                s_drawerCurrentlyRemovingFrom = null;
+                // restore fade of all buttons
+                TouchscreenButtonEnableDisableManager.Instance.GetAllButtons().ForEach(p => p.image.color = new Color(1, 1, 1, 1));
+            }
+            else{
+                isPointerDown = true;
+                WasDragging = false;
+                pointerDownPos = eventData.position;
+                pointerDownButtonSizeDelta = rectTransform.sizeDelta;
+                pointerDownButtonAnchoredPos = rectTransform.anchoredPosition;
+                if (TouchscreenInputManager.Instance.IsEditingControls)
+                    OnPointerDownDuringEditMode(eventData);
+                else
+                    OnPointerDownDuringGameplay(eventData);
+            }
+
+        }
+        public override void OnPointerUp(PointerEventData eventData)
+        {
+            
+            isPointerDown = false;
+            s_shouldShowLabels = true;
+            if (TouchscreenInputManager.Instance.IsEditingControls)
+            {
+                OnPointerUpDuringEditMode(eventData);
+            }
+            else
+            {
+                OnPointerUpDuringGameplay(eventData);
+            }
+            if(isToggleForEditOnScreenControls && !skipClickOnEditControlsButton)
+                TouchscreenInputManager.Instance.OnEditTouchscreenControlsButtonClicked(this);
+            pointerDownWasTouchingResizeButton = false;
+            skipClickOnEditControlsButton = false;
+        }
+
+        #endregion
+
+        #region event listeners
+        private void OnAddToDrawerButtonClicked()
+        {
+            void AddToDrawerOnConfirmation()
+            {
+                s_drawerCurrentlyAddingTo = this;
+                s_drawerCurrentlyRemovingFrom = null;
+                s_hasShownAddToDrawerPopup = true;
+                // fade out all buttons that aren't in the drawer
+                TouchscreenButtonEnableDisableManager.Instance.GetAllEnabledButtons().Where(p => !buttonsInDrawer.Contains(p.gameObject) || p == this).ToList().ForEach(p => p.image.color = new Color(1, 1, 1, 0.5f));
+                SetResizeButtonActive();
+            }
+            if(!s_hasShownAddToDrawerPopup)
+                TouchscreenInputManager.Instance.PopupMessage.Open("Tap on the button you would like to add to the drawer.", AddToDrawerOnConfirmation, null, "Okay", "Cancel");
+            else
+                AddToDrawerOnConfirmation();
+        }
+        private void OnRemoveFromDrawerButtonClicked()
+        {
+            void RemoveFromDrawerOnConfirmation()
+            {
+                s_drawerCurrentlyAddingTo = null;
+                s_drawerCurrentlyRemovingFrom = this;
+                s_hasShownRemoveFromDrawerPopup = true;
+                // fade out all buttons that aren't in the drawer
+                TouchscreenButtonEnableDisableManager.Instance.GetAllEnabledButtons().Where(p => !buttonsInDrawer.Contains(p.gameObject) || p == this).ToList().ForEach(p => p.image.color = new Color(1, 1, 1, 0.5f));
+                SetResizeButtonActive();
+            }
+            if(!s_hasShownRemoveFromDrawerPopup)
+                TouchscreenInputManager.Instance.PopupMessage.Open("Tap on the button you would like to remove from the drawer.", RemoveFromDrawerOnConfirmation, null, "Okay", "Cancel");
+            else
+                RemoveFromDrawerOnConfirmation();
+        }
+        private void Instance_onEditControlsToggled(bool isEditingControls)
+        {
+            SetResizeButtonActive();
+            SetDrawerOpenBasedOnEditMode();
+        }
+
+        private void SetResizeButtonActive()
+        {
+            if(resizeButton)
+                resizeButton.gameObject.SetActive(TouchscreenInputManager.Instance.CurrentlyEditingButton == this 
+                    && TouchscreenInputManager.Instance.CurrentlyEditingButton.canButtonBeResized 
+                    && !(s_drawerCurrentlyAddingTo || s_drawerCurrentlyRemovingFrom));
+
+        }
+
+        private void Instance_onCurrentlyEditingButtonChanged(TouchscreenButton currentlyEditingButton)
+        {
+            SetResizeButtonActive();
+
+            if(isButtonDrawer){
+                addToDrawerButton.gameObject.SetActive(currentlyEditingButton == this);
+                removeFromDrawerButton.gameObject.SetActive(currentlyEditingButton == this);
+            }
+
+            if(currentlyEditingButton != this)
+                WasDragging = false;
+        }
+
+        private void Instance_onResetButtonTransformsToDefaultValues()
+        {
+            if(transform.parent && transform.parent.parent && transform.parent.parent.TryGetComponent(out TouchscreenButton myDrawer)){
+                transform.SetParent(myDrawer.transform.parent, true);
+                rectTransform.anchoredPosition = defaultButtonPosition;
+                rectTransform.sizeDelta = defaultButtonSizeDelta;
+                gameObject.SetActive(defaultIsEnabled);
+                transform.SetParent(myDrawer.transform, true);
+                rectTransform.ForceUpdateRectTransforms();
+            } else {
+                rectTransform.anchoredPosition = defaultButtonPosition;
+                rectTransform.sizeDelta = defaultButtonSizeDelta;
+                gameObject.SetActive(defaultIsEnabled);
+            }
+        }
+
+        private void Instance_onResetButtonActionsToDefaultValues()
+        {
+            myAction = defaultAction;
+            myKey = defaultKeyCode;
+        }
+
+        #endregion
+    }
+}

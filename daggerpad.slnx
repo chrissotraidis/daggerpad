@@ -1,0 +1,11 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="Unity.Postprocessing.Runtime.Tests.csproj" />
+  <Project Path="Unity.Postprocessing.Runtime.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="NativeFilePicker.Runtime.csproj" />
+  <Project Path="Unity.Postprocessing.Editor.csproj" />
+  <Project Path="NativeFilePicker.Editor.csproj" />
+  <Project Path="Unity.Postprocessing.Editor.Tests.csproj" />
+</Solution>

@@ -1,0 +1,2 @@
+Welcome to DaggerPad
+Import a ZIP archive containing your Daggerfall game files from Files
