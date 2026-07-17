@@ -1,0 +1,2 @@
+Welcome to Daggerfall Unity
+Please import a zip archive of your Daggerfall game files

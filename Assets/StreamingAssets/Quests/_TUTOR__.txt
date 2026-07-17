@@ -1,0 +1,433 @@
+-- Quest: C:\QUESTS\WORKING\_TUTOR__.Qbn.
+-- StartsBy: letter
+-- Questee: anyone
+-- Repute: 0
+-- QuestId: 0
+Messages: 57
+Quest: _TUTOR__
+DisplayName: Tutorial
+-- Message panels
+QRC:
+
+
+RumorsPostfailure:  [1006]
+I'll give you a hint %ra. If you want to succeed in magic, join the mages guild.
+                                     <--->
+A small tip for you. Put your money in the bank of %reg. Have them give you letters of credit. They hardly weigh a thing.
+                                     <--->
+Specialty shops are the best place to find unsual items.
+                                     <---> 
+They just passed a vagrancy law. You can't sleep in the streets. The guards even patrol outside the walls. You have to get a room at an Inn.
+                                     <--->
+Everyone should join a temple. The only question is what god is best for you? I'd check into them all.
+                                    <--->
+Things are really heating up in the city of Daggerfall. You should go there if you want adventure.
+                                     <--->
+I've heard that the royalty of Wayrest is stirring things up. It's a great opportunity for anyone with the guts to actually ask the king or queen for work.
+                                     <--->
+I've heard that Sentinel is a good place to earn quick gold and the opportunity for a bit of adventure. The royal family is hiring heroes for dangerous work.
+
+--the rumors previously placed in "during quest" have been moved to "after quest." The tutorial was way too short for these messages
+--to appear normally, so having them in rumor mill for 7 days after quest ends is an OK window.
+--could theoretically make tutorial extend on much longer in an invisible state and keep rumors
+--present for a long time.
+
+QuestLogEntry:  [1010]
+<ce>             Daggerfall Unity has an updated tutorial.
+<ce>           It will teach you the basics of gameplay.
+<ce>          Make sure to take notes on the info it presents.
+<ce>               Do you want to use this tutorial?
+
+Message:  1012
+<ce>                           Page 1
+<ce>                                    
+<ce>           The very first thing you want to do is to check
+<ce>           your keybinds. Press Escape and click on Controls.
+<ce>           The most important ones for now are your movement (WASD)
+<ce>           and your Swing Weapon (Mouse1 by default). Attacking
+<ce>           may involve holding the Swing Weapon button down
+<ce>           and moving the mouse; OR clicking the Swing Weapon
+<ce>           button, OR holding it down. This can be changed
+<ce>           in the Advanced section of the Controls screen.
+<ce>           
+<ce>           Make sure your binds are acceptable,
+<ce>           and another message will appear in 10 seconds.
+
+Message:  1013
+<ce>                           Page 2
+<ce>                                    
+<ce>          Now press F6 to open your inventory. Equip any armor
+<ce>           available to you, and the best weapon you have.
+<ce>           "Best weapon" refers to a weapon that your character is skilled in,
+<ce>           and/or is a very strong material (ie: Elven, Dwarven).
+<ce>           Without those two advantages, you will almost never hit enemies.
+<ce>           
+<ce>           (Next message in 15 seconds. Press No to end tutorial.)
+
+Message:  1015
+<ce>                           Page 3
+<ce>                                    
+<ce>        Equipping a weapon requires a short delay. When it's ready,
+<ce>        press Z to bring it out. You can also use your fist if your
+<ce>        Hand-to-Hand skill is high. Practice some attacks with the
+<ce>        Swing Weapon button.
+<ce>           
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1020
+<ce>                           Page 4
+<ce>                                    
+<ce>          Press R to rest when you need to regain health, stamina,
+<ce>        or magicka. Those indicators are at the bottom-left of the screen.
+<ce>          You don't need to rest right now, but remember it for later.
+<ce>           
+<ce>           (Next message in 5 seconds. Press No to end tutorial.)
+
+Message:  1025
+<ce>                           Page 5
+<ce>                                    
+<ce>         Characters with magic available can also try casting spells,
+<ce>         though enemies will often resist your spells. Press Backspace
+<ce>         to open your spellbook, if you are a spellcaster. Double-click
+<ce>         on a spell to ready it.
+<ce>         
+<ce>         Some spells require a target, and others are cast automatically
+<ce>         on yourself. If it's a targeted spell, use left mouse click
+<ce>         to cast it after it's readied. Use Q to re-ready a spell that you
+<ce>         cast before, so you can rapid-fire spells as needed.
+<ce>           
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1030
+<ce>                           Page 6
+<ce>                                    
+<ce>         If you haven't saved the game yet, do so now. Press Escape and
+<ce>         click on Save Game. The Quicksave button, defined in
+<ce>         Controls -> Advanced (at the bottom of the Controls screen)
+<ce>         is something you can also use to save.
+<ce>           
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1031
+<ce>                         Page 7
+<ce>           
+<ce>           Your first step to escape this cave is to exit this room.
+<ce>           Go down the hallway opposite the campfire.
+<ce>           After the turn, you will find a door resembling a brick wall.
+<ce>           Click on the door to open it. Beyond, you will see a small room
+<ce>           with a rat and a treasure pile on an altar.
+<ce>           
+<ce>           Clicking on the treasure pile will open the inventory.
+<ce>           You will see the treasure pile's contents on the right side
+<ce>           of the inventory screen. With the "remove" option highlighted,
+<ce>           click on the items to grab them for yourself.
+<ce>           
+<ce>           You can also loot enemy corpses after killing them,
+<ce>            but the rat will have no treasure.
+<ce>           
+<ce>           (Next message in 45 seconds. Press No to end tutorial.)
+
+Message:  1035
+<ce>                           Page 8
+<ce>                                    
+<ce>         Continue through the dungeon. You can choose to fight
+<ce>        or escape from the enemies.
+<ce>                                    
+<ce>         You will need weapons made of stronger materials to hit
+<ce>         some monsters. The upcoming imp monster can't be hurt with
+<ce>         iron weapons. You need steel or stronger to hurt it.
+<ce>         Your fists will also work, but you need
+<ce>         a high Hand-to-Hand skill before it will succeed.
+<ce>           
+<ce>           (Next message in 5 seconds. Press No to end tutorial.)
+
+Message:  1040
+<ce>                           Page 9
+<ce>                                    
+<ce>         Some monsters are stronger than you. You can escape from them
+<ce>         without consequence. If an enemy is giving you a lot of trouble,
+<ce>         run away and leave it behind. You don't gain experience from killing
+<ce>         enemies, so a strong enemy gives no more reward than a weak one.
+<ce>           
+<ce>           (Next message in 5 seconds. Press No to end tutorial.)
+
+Message:  1041
+<ce>                           Page 10
+<ce>         
+<ce>         Some objects can be clicked on. In the main hall of this
+<ce>        dungeon, you will find a throne and a lever next to it.
+<ce>        When you see the lever, click on it to raise the throne
+<ce>        like an elevator. Other dungeons will have objects
+<ce>         with more effects, such as wheels and secret switches.
+<ce>
+<ce>         To escape this dungeon, you need to look for a dark, stone
+<ce>        archway set into a wall, about the same height as you.
+<ce>        When you click on it, you will exit the dungeon and enter
+<ce>        the outdoors. The next message will appear at that time.
+<ce>           
+<ce>           (Next message when you exit the dungeon. Press No to end tutorial.)
+
+Message:  1042
+<ce>                           Page 11
+<ce>                                    
+<ce>         The world of Daggerfall is immense
+<ce>         and generally can't be traveled in real time.
+<ce>         
+<ce>         Open the travel map (normally by pressing V).
+<ce>        The region that you are in is highlighted in red.
+<ce>         Click on that region and you get a focused map.
+<ce>        Click FIND and type in DAGGERFALL.
+<ce>         
+<ce>           For now, keep the travel settings on CAUTIOUSLY and INNS.
+<ce>               These settings will ensure you arrive in the morning.
+<ce>             You do not want to arrive in Daggerfall City at night.
+<ce>           
+<ce>           (Next message when you travel to a city. Press No to end tutorial.)
+
+Message:  1045
+<ce>                           Page 12
+<ce>    
+<ce>    Find a townsperson nearby. Press F4 to set your mode
+<ce>        to Dialogue, and then click on the person. You will
+<ce>        enter a conversation window. You can use the window
+<ce>        to ask for directions to places. If a person is unfriendly or
+<ce>    doesn't know, find another peasant.
+<ce>    
+<ce>    Once a peasant tells you what direction a building is in,
+<ce>        you can keep repeating the request until they mark it
+<ce>        on your map. This is very important for finding
+<ce>    locations easily in a large city like this one.
+<ce>           
+<ce>           (Next message in 45 seconds. Press No to end tutorial.)
+
+Message:  1047
+<ce>                          Page 13
+<ce>  
+<ce>    The conversation window also has options for
+<ce>        finding people and asking for news,
+<ce>    including for local quests as "Work." Look at the top left
+<ce>        corner of the conversation window when it's open to see
+<ce>        the different topics you can ask about.
+<ce>           
+<ce>           (Next message in 15 seconds. Press No to end tutorial.)
+
+Message:  1048
+<ce>                          Page 14
+<ce>  
+<ce>       If you gained treasure in the starting dungeon,
+<ce>        you will want to sell it. A pawn shop is most useful
+<ce>        for this, though general stores and armorsmiths
+<ce>       can also buy some kinds of goods. Find one such store
+<ce>        somewhere in town. You can ask peasants for directions
+<ce>        to them, or press F3 to change to Info mode, and click
+<ce>        on the buildings to learn what they are from a distance.
+<ce>       
+<ce>       General stores open at 6 AM. Pawn shops and armorsmiths
+<ce>        open later. Check the current time in-game (usually the 'i' key).
+<ce>        If the stores are still closed, press the Rest button
+<ce>        to loiter (not rest) until they open.
+<ce>       
+<ce>       Note that if you loiter right now,
+<ce>        the next tutorial message will appear immediately.
+<ce>       
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1050
+<ce>                          Page 15
+<ce>                                    
+<ce>      Most characters want to join at least one guild.
+<ce>        As you rise in rank in a guild, you get more benefits.
+<ce>        To rise in rank, you must improve skills the guild
+<ce>        cares about, and perform quests on a regular basis
+<ce>        to improve your reputation with them.
+<ce>                                    
+<ce>        All spellcasters should join the Mages Guild. Fighter type
+<ce>        characters can join the Fighters Guild and a knightly order.
+<ce>        You can also pick a temple to join.
+<ce>        
+<ce>        You can only be a member of one temple and one knightly order. 
+<ce>                                    
+<ce>         There are other hidden guilds in the game as well.
+<ce>           
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1055
+<ce>                          Page 16
+<ce>                                    
+<ce>        The last task of all is to find a quest.
+<ce>        Daggerfall's quests are radiant, choosing locations
+<ce>        around you as places where things will happen.
+<ce>  
+<ce>        Doing quests for guilds will help you increase
+<ce>        in rank with them, so they may be a priority for you.
+<ce>        After you have joined the guild, find someone inside the
+<ce>        guild building with the button "Get Quest."
+<ce>         Accept or reject the quest you are given.
+<ce>        Rejecting a quest has no consequences.
+<ce>
+<ce>     (Next message will appear immediately. Press No to end tutorial.)
+
+--had to split page 16 into a new page 17 because it was too large on unilength font
+
+Message:  1056
+<ce>             Page 17
+<ce>
+<ce>  Many quests will send you to other towns.
+<ce>        If they do, enter your journal (normally L) and click
+<ce>  on the quest log entry about that quest.
+<ce>        Many times, it will automatically plan
+<ce>  a travel to your quest destination.
+<ce>        Otherwise, you can open the travel screen
+<ce>  and choose the location yourself.
+<ce>  
+<ce>  You can also find quests among random townspeople.
+<ce>        Click on people in taverns, who tend to
+<ce>  have quests. You can also get them from shopkeepers
+<ce>        with the "Talk" button.
+<ce>  Asking for "Any work?" can lead you to possible questgivers.
+<ce>           
+<ce>           (Next message in 10 seconds. Press No to end tutorial.)
+
+Message:  1057
+<ce>       This is the end of the tutorial. Daggerfall is a game with many
+<ce>       unique and intricate mechanics, so learn from other players
+<ce>       about the game's quirks. You can also add mods to the game
+<ce>       once you understand the basic mechanics.
+<ce>       
+<ce>       Welcome to your new obsession...
+
+QBN:
+
+Place pirateerHold permanent PirateerHold2
+
+Clock _page1_ 00:02
+Clock _page2_ 00:03
+Clock _page3_ 00:02
+Clock _page4_ 00:01
+Clock _page5_ 00:02
+Clock _page6_ 00:03
+Clock _page6a_ 00:09
+Clock _page7_ 00:01
+Clock _page8_ 00:01
+Clock _page11_ 00:09
+Clock _page12_ 00:03
+Clock _page13_ 00:02
+Clock _page14_ 00:02
+Clock _page15_ 00:02
+
+
+--	Quest start-up:
+	prompt 1010 yes _yes_ no _no_ 
+
+variable _exitstarter_
+_yes_ task:
+	pc at pirateerHold set _exitstarter_ 
+	start timer _page1_ 
+	say 1012
+--no prompt on this one because it is shown immediately after game begin.
+--the purpose of these prompts is to prevent a player from clicking out
+--of a tutorial window when they didn't intend to. This is not a risk
+--on the first window.
+
+_page1_ task:
+	prompt 1013 yes _yes1_ no _no_ 
+
+_yes1_ task:
+	start timer _page2_ 
+
+_page2_ task:
+	prompt 1015 yes _yes2_ no _no_ 
+
+_yes2_ task:
+	start timer _page3_ 
+
+_page3_ task:
+	prompt 1020 yes _yes3_ no _no_ 
+
+_yes3_ task:
+	start timer _page4_ 
+
+_page4_ task:
+	prompt 1025 yes _yes4_ no _no_
+
+_yes4_ task:
+	start timer _page5_
+
+_page5_ task:
+	prompt 1030 yes _yes5_ no _no_ 
+
+_yes5_ task:
+	start timer _page6_ 
+
+_page6_ task:
+	prompt 1031 yes _yes6_ no _no_ 
+
+_yes6_ task:
+	start timer _page6a_ 
+
+_page6a_ task:
+	prompt 1035 yes _yes6a_ no _no_ 
+
+_yes6a_ task:
+	start timer _page7_ 
+
+_page7_ task:
+	prompt 1040 yes _yes7_ no _no_ 
+
+_yes7_ task:
+	start timer _page8_ 
+
+_page8_ task:
+	prompt 1041 yes _yes8_ no _no_ 
+
+variable _yes8_
+
+_escape_ task:
+	when _yes8_ and not _exitstarter_
+	prompt 1042 yes _yes9_ no _no_ 
+
+variable _yes9_
+_arrival_ task:
+	when pc enters city
+	start task _page10_
+
+_page10_ task:
+	prompt 1045 yes _yes10_ no _no_ 
+
+_yes10_ task:
+	start timer _page11_ 
+
+_page11_ task:
+	prompt 1047 yes _yes11_ no _no_ 
+
+_yes11_ task:
+	start timer _page12_ 
+
+_page12_ task:
+	prompt 1048 yes _yes12_ no _no_ 
+
+_yes12_ task:
+	start timer _page13_ 
+
+_page13_ task:
+	prompt 1050 yes _yes13_ no _no_ 
+
+_yes13_ task:
+	start timer _page14_ 
+
+_page14_ task:
+	prompt 1055 yes _yes14_ no _no_ 
+
+_yes14_ task:
+	prompt 1056 yes _yes15_ no _no_
+
+_yes15_ task:
+	start timer _page15_ 
+
+_page15_ task:
+	say 1057
+	start task _no_
+
+_no_ task:
+	start quest 977 977 
+	end quest 

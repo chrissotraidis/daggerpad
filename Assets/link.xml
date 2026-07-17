@@ -1,0 +1,6 @@
+<linker>
+  <assembly fullname="FullSerializer - Unity" preserve="all" />
+  <assembly fullname="Assembly-CSharp">
+    <namespace fullname="DaggerfallWorkshop.Game.Serialization" preserve="all" />
+  </assembly>
+</linker>

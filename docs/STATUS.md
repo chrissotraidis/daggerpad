@@ -1,0 +1,63 @@
+# DaggerPad implementation status
+
+Date: 2026-07-17
+
+## Pre-publication handoff snapshot
+
+This snapshot was recorded before publishing the iPadOS implementation to GitHub.
+
+- Working branch: `ipados`.
+- Starting point: `main` / `origin/main` at `7ef64b2` (`Add DaggerPad feasibility PRD`).
+- Intended publication scope: the complete Unity project, iPadOS platform seams, build and verification scripts, project documentation, license, and repository configuration listed by `git status`. These changes were produced for this implementation and belong together.
+- Explicitly excluded from publication: classic Daggerfall data under `ref/`; prepared ZIPs, generated Unity/Xcode projects, application binaries, logs, Simulator containers, screenshots, and other contents under ignored build/cache paths.
+- Durable implementation lives in `Assets/`, `Packages/`, `ProjectSettings/`, `scripts/`, and the root/docs Markdown files. Generated Xcode output is disposable.
+- Final source gate: `bash scripts/verify-source.sh` passed all 19 assertions, including real reference-data structure, Addressables generation, iOS container relocation, touch layouts, and whitespace checks.
+- Final Xcode-export gate: `bash scripts/verify-xcode-export.sh Builds/iOS/Simulator` passed all 9 assertions.
+- Final Apple-silicon Simulator build: `Builds/iOS/relocation-xcode.log` contains `** BUILD SUCCEEDED **` for Xcode 26.6.
+- Final runtime target: `DaggerPad iPad Pro M2 iOS 18.5`, device identifier `99B296D5-8819-4637-8C62-347E1F49B85F`.
+- Final runtime state: imported game data contains 1,574 files and occupies approximately 529 MB; `Simulator Smoke` and `DaggerPad AutoSave` both persist; the updated binary repaired its relocated Documents path and loaded the autosave into Privateer's Hold.
+- Evidence remains local and ignored under `Builds/iOS/Evidence/`; the published repository contains the repeatable scripts and acceptance record, not licensed game data or generated evidence.
+- Publication does not claim the physical-device gates below. Those remain the next acceptance phase.
+
+## Completed source gates
+
+- Pinned mobile source baseline copied into the repository root at Vwing commit `0fa65294523a132a0e5389d125f58d6566a1e815`.
+- Unity project remains pinned to `2022.3.62f3`.
+- iOS project identity, IL2CPP backend, iOS 15 floor, Apple-silicon Simulator architecture, Metal settings, landscape support, and ProMotion support configured.
+- Android pointer capture isolated from iOS compilation.
+- Runtime C# compiler and `mcs.dll` excluded from iOS; code mods fail soft while assets remain available.
+- iOS writable StreamingAssets mirror, Files sharing post-processing, ZIP import UTI, traversal-safe unzip, iOS mod target, and iOS restart guidance implemented.
+- Original 1024px DaggerPad app icon generated and configured; inherited Daggerfall artwork is no longer used as the installed app identity.
+- Touch UI hooks enabled for iOS; tap/long-press/two-finger mouse mapping, optional directional gesture combat, and default/simplified/gesture/accessibility presets implemented.
+- Background/focus autosave and audio pause/resume implemented.
+- Deterministic device and Simulator Xcode export commands added.
+- Source and real-data verification passes with 472 texture archives and 17 videos.
+- A clean 148 MB ignored test archive exists at `Builds/TestData/daggerfall.zip`; `unzip -t` passes and it contains no macOS metadata directory.
+- Unity `2022.3.62f3` imports the project in batch mode with zero C# errors.
+- Unity exports the Apple-silicon Simulator Xcode project, and all post-process assertions pass.
+- The deterministic export explicitly builds Addressables/Localization content before the iOS player, preventing a black screen caused by missing `Data/Raw/aa/settings.json`.
+- Xcode `26.6` (build `17F113`) builds the exported `DaggerPad.app` for arm64 Simulator with no errors.
+- iOS 26.5 and iOS 18.5 Simulator runtimes are installed; the smoke harness pins iOS 18.5 because the iOS 26.5 runtime has a current CoreSimulator launch defect on this host configuration.
+- The corrected app launches on the pinned M2-class iPad Pro Simulator, renders the setup wizard, imports and extracts the 155 MB test ZIP into 529 MB of validated Daggerfall data, and relaunches using the persisted `arena2` path.
+- Imported data is recovered from the current Documents container if iPadOS changes the container UUID during an app update, and the stale absolute path is repaired automatically.
+- A touch-only run reached the Daggerfall main menu, completed character creation including native text entry, entered Privateer's Hold, displayed the gameplay overlay, opened the pause and save UI, persisted `Saves/SAVE0` as `Simulator Smoke`, and loaded it back into the world.
+- Background/resume created `Saves/SAVE1` as `DaggerPad AutoSave`; after a forced process termination and cold relaunch, the autosave was visible and loaded back into Privateer's Hold.
+- Runtime evidence is preserved under ignored `Builds/iOS/Evidence/`, including Unity stdout/stderr and touch/gameplay screenshots.
+
+## Current acceptance boundary
+
+The macOS Simulator end-to-end gate is closed through first playable world entry and save persistence. The source, Unity export, Xcode build, Files import, Addressables runtime, touch character creation, gameplay HUD, pause UI, and save system now have direct evidence.
+
+The earlier black DaggerPad screen after process launch was diagnosed separately from the transient host Simulator issue: the Xcode export lacked Addressables runtime data. `DaggerPadIosBuild` now builds that content before every player export, and the Xcode verifier rejects an export without it.
+
+Do not label the port device-stable until the remaining physical and complete-gameplay evidence exists:
+
+1. On the physical M2 iPad Pro, repeat Files import and first launch using the same prepared archive.
+2. Prove sustained movement/look, door or lever interaction, combat, loot/equip, and automap gestures by touch.
+3. Repeat the already-passing Simulator save/load and background autosave recovery flows after iPadOS terminates the process.
+4. Complete the one-hour thermal/frame-pacing pass and two-hour memory/jetsam pass.
+5. Exercise hardware keyboard, pointer, and controller input, then validate save round-tripping through Files.
+
+## Tomorrow's action
+
+Open `Builds/iOS/Simulator/Unity-iPhone.xcodeproj`, select the connected iPad, set the development team, and run. Use `Builds/TestData/daggerfall.zip` for Files import and follow the physical checklist in `docs/TESTING.md`. Re-run `bash scripts/run-simulator-smoke.sh` first if a fresh Simulator regression baseline is wanted.
