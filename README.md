@@ -55,7 +55,7 @@ The imported files and saves are visible at **Files > On My iPad > DaggerPad > D
   </tr>
 </table>
 
-For command-line exports, signing details, and common fixes, see [BUILDING.md](BUILDING.md).
+For the complete physical-iPad handoff, including in-place updates, controls, resets, and known gates, see [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md). Command-line exports and common fixes are also summarized in [BUILDING.md](BUILDING.md).
 
 ## Controls
 
@@ -112,6 +112,7 @@ The detailed run is in [docs/PLAYTEST_2026-07-17.md](docs/PLAYTEST_2026-07-17.md
 
 ## Project docs
 
+- [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md)
 - [Build and installation](BUILDING.md)
 - [Simulator and physical-device testing](docs/TESTING.md)
 - [Current implementation status](docs/STATUS.md)

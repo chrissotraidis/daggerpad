@@ -1,6 +1,19 @@
 # DaggerPad implementation status
 
-Date: 2026-07-17
+Date: 2026-07-19
+
+## Physical iPad version 6 snapshot
+
+- `main` now contains the version 6 iPad input pass and the Daggerfall-styled touch icon set.
+- Physical left-thumb movement works. The visible movement ring and knob are 40 percent smaller than version 5 while the accepted logical radius and sensitivity are unchanged.
+- The normal action-to-key path is restored after a version 5 regression that left More working while Use, Attack, Draw, Inventory, and Pause were dead.
+- The right look surface supports deliberate double-tap Use/Take. Use, Attack, and Draw are positioned lower on the right edge.
+- More starts closed in a compact grid below the native status bars. Edit is standalone in the bottom strip and closes More before presenting the options panel.
+- Held control names appear in the HUD instead of beneath the player's finger, and Enter text is capped to fit its button.
+- Unity completed the physical-device export, Xcode completed signing and the arm64 device build, and the app installed and launched over the existing iPad installation.
+- A device-container read-back confirmed `simplified-layout` version 6, the revised action positions, standalone Edit, and the closed drawer configuration.
+- The canonical handoff for fresh setup, in-place update, controls, troubleshooting, and remaining checks is `docs/IPAD_SETUP_AND_CONTROLS.md`.
+- Hands-on simultaneous movement/look, combat, object activation, keyboard/trackpad feel, and long-session device stability remain explicit physical acceptance gates.
 
 ## Input and README refinement snapshot
 
