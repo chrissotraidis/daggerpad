@@ -473,7 +473,7 @@ namespace DaggerfallWorkshop.Game
                 return;
 
             if (isToggleForEditOnScreenControls)
-                label.text = "Toggle Edit Mode";
+                label.text = TouchscreenInputManager.Instance && TouchscreenInputManager.Instance.IsEditingControls ? "Done" : "";
             else if (myKey == KeyCode.None && myAction == InputManager.Actions.Unknown)
                 label.text = "";
             else if (myKey == KeyCode.None)
@@ -483,14 +483,14 @@ namespace DaggerfallWorkshop.Game
             else
                 label.text = $"{myAction} + {myKey}";
 
-            if (!canActionBeEdited)
-                label.enabled = !Application.isPlaying || TouchscreenInputManager.Instance.IsEditingControls;
-            else if (!Application.isPlaying || TouchscreenInputManager.Instance.IsEditingControls && s_shouldShowLabels)
-            {
+            if (!Application.isPlaying)
                 label.enabled = true;
-            }
-            else
+            else if (!TouchscreenInputManager.Instance || !TouchscreenInputManager.Instance.IsEditingControls)
                 label.enabled = false;
+            else if (isToggleForEditOnScreenControls)
+                label.enabled = true;
+            else
+                label.enabled = TouchscreenInputManager.Instance.CurrentlyEditingButton == this && s_shouldShowLabels;
         }
         private void UpdateButtonTransform()
         {

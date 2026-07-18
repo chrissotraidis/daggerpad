@@ -566,7 +566,11 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
                     settingsPathLabel.Position = new Vector2(0, 8);
                     settingsPathLabel.HorizontalAlignment = HorizontalAlignment.Center;
 #endif
+#if UNITY_IOS
+                    settingsPathLabel.Text = "Files > On My iPad > DaggerPad > DaggerfallUnity";
+#else
                     settingsPathLabel.Text = DaggerfallUnity.Settings.PersistentDataPath;
+#endif
                     settingsPathLabel.ToolTip = defaultToolTip;
 #if UNITY_ANDROID || UNITY_IOS
                     settingsPathLabel.ToolTipText = "Tap to open folder";

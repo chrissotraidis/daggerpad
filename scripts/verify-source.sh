@@ -48,6 +48,11 @@ grep -q 'UIFileSharingEnabled' Assets/iOS/Editor/DaggerPadIosBuild.cs \
 grep -q 'AddressableAssetSettings.BuildPlayerContent' Assets/iOS/Editor/DaggerPadIosBuild.cs \
   && pass "iOS build generates Addressables player content" \
   || fail "iOS Addressables player content build missing"
+grep -q 'GameController.framework' Assets/iOS/Editor/DaggerPadIosBuild.cs \
+  && grep -q 'GCMouse' Assets/Plugins/iOS/DaggerPadPointer.mm \
+  && grep -q 'DaggerPadPointerInput.IsConnected' Assets/Scripts/Game/PlayerMouseLook.cs \
+  && pass "native iPadOS mouse and trackpad input configured" \
+  || fail "native iPadOS mouse and trackpad input is incomplete"
 grep -q 'Recovered Daggerfall data after iOS container relocation' Assets/Scripts/DaggerfallUnity.cs \
   && pass "iOS app updates recover relocated imported data" \
   || fail "iOS container-relocation recovery is missing"
@@ -56,6 +61,22 @@ grep -q 'RegenerateDaggerPadLayoutIfMissing("simplified-layout")' Assets/Android
   && grep -q 'RegenerateDaggerPadLayoutIfMissing("accessibility-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "simplified, gesture, and accessibility layouts are bundled" \
   || fail "DaggerPad control presets are missing"
+grep -q 'DaggerPadPresetVersion = 2' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'daggerPadPresetVersion >= DaggerPadPresetVersion' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "built-in touch presets migrate forward without replacing custom layouts" \
+  || fail "DaggerPad preset migration guard is missing"
+grep -q 'PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "simplified-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'position = new Vector2(0, 110)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "iOS starts with the balanced layout and a safe editor control" \
+  || fail "DaggerPad iOS layout defaults are missing"
+grep -q 'label.text = TouchscreenInputManager.Instance.*"Done"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'CurrentlyEditingButton == this' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'SetEditControlsActive(false)' Assets/Android/Scripts/TouchscreenInputManager.cs \
+  && pass "touch editor has focused labels and reliable exit paths" \
+  || fail "touch editor usability guards are missing"
+grep -q 'Files > On My iPad > DaggerPad > DaggerfallUnity' Assets/Scripts/Game/UserInterfaceWindows/DaggerfallUnitySetupGameWizard.cs \
+  && pass "iOS setup shows the Files-visible data location" \
+  || fail "iOS setup still exposes an internal data path"
 grep -q 'Actions.ReadyWeapon' Assets/iOS/Scripts/DaggerPadLifecycle.cs \
   && pass "gesture layout two-finger ready/sheathe action configured" \
   || fail "gesture layout two-finger ready/sheathe action missing"

@@ -2,6 +2,31 @@
 
 Date: 2026-07-17
 
+## Input and README refinement snapshot
+
+- Working branch: `agent/input-playtest-readme`, based on the touch-refinement commit `99a581a`.
+- Rechecked touch menus, inventory, automap, text entry, named save/load, keyboard movement/turning, Escape, automap, and status shortcuts on the populated M2 iPad Pro Simulator.
+- Found a platform defect in mouse/trackpad activation: Unity 2022 reports `Input.mousePresent == false` on iOS by design, so the existing code could never enter mouse-look mode.
+- Added a native Apple `GCMouse` bridge for raw mouse/trackpad deltas and three buttons, plus gameplay-only pointer locking and deterministic `GameController.framework` export.
+- Unity completed a clean Simulator export; the updated export gate passed; Xcode compiled the Objective-C++ bridge and produced `BUILD SUCCEEDED` for arm64 iOS 18.5.
+- The installed app logged a native `GCMouse` connection. Simulator automation does not generate physical `GCMouse` deltas, so look feel and pointer buttons remain explicit physical-iPad checks.
+- Installed over the existing app without uninstalling it; imported Daggerfall data and the `Input Run`, `DaggerPad AutoSave`, and `Simulator Smoke` saves remained available.
+- Replaced the minimal README with a screenshot-led fresh-clone install, controls, Simulator, status, limits, and documentation guide; added `BUILDING.md` and a detailed playtest record.
+- Detailed evidence and remaining gates: `docs/PLAYTEST_2026-07-17.md`.
+
+## Touch UI refinement snapshot
+
+- Working branch: `agent/ui-playtest-refinement`, based on merged `main` at `ff6ccf71d754908ab6ae7763deb4af980590756e`.
+- A deeper M2 iPad Simulator pass found three reproducible defects: the simplified preset hid pause, inventory, and editor access; the editor opened with overlapping labels and could trap the player behind the home indicator; and the iOS setup page exposed an unreadable internal container path.
+- Built-in DaggerPad presets are now versioned and migrate in place. User-created layouts remain untouched. New iOS installs select the balanced simplified preset by default.
+- The simplified preset now keeps pause, inventory, use, attack, ready weapon, run, drawer, joystick, and editor access visible. Secondary utility actions remain in a drawer that starts closed.
+- The editor control is clear of the home indicator, shows `Done` while editing, labels only the selected control, supports deselect-then-exit through empty-space taps, and exits through Escape.
+- The setup page now presents `Files > On My iPad > DaggerPad > DaggerfallUnity` while retaining the tap guidance for opening Files.
+- The source gate passes all 23 assertions. Unity `2022.3.62f3` exported successfully, the 9-point Xcode export gate passed, and Xcode `26.6` produced `BUILD SUCCEEDED` for the arm64 iOS 18.5 Simulator target.
+- The updated app was installed over the populated Simulator without uninstalling it. iOS assigned a new container UUID; DaggerPad retained the imported data, both saves, the custom `my-layout1`, and migrated all three built-in DaggerPad presets to version 2.
+- Runtime rechecks passed for setup rendering, `Simulator Smoke` load, balanced HUD rendering, pause, inventory, utility drawer, editor selection, empty-space exit, Done exit, enlarged accessibility controls, and gesture mode without a redundant attack button. No new application exception or crash was observed; the only error-level unified-log entry was an older Simulator PlugInKit XPC interruption.
+- Evidence is local and ignored under `Builds/iOS/Evidence/ui-refinement-2026-07-17/`. Physical-device combat, sustained movement, thermal, and hardware-input gates remain scheduled for the M2 iPad Pro.
+
 ## Pre-publication handoff snapshot
 
 This snapshot was recorded before publishing the iPadOS implementation to GitHub.

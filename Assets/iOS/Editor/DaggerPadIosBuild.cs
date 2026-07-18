@@ -105,6 +105,7 @@ namespace DaggerPad.Editor
             string frameworkTarget = project.GetUnityFrameworkTargetGuid();
             ConfigureTarget(project, appTarget);
             ConfigureTarget(project, frameworkTarget);
+            project.AddFrameworkToProject(frameworkTarget, "GameController.framework", true);
             project.WriteToFile(projectPath);
 
             PatchFrameworkMinimumOs(buildPath);
