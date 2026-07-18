@@ -44,6 +44,8 @@ namespace DaggerfallWorkshop.Game
         [SerializeField] private Toggle leftJoystickToggle, rightJoystickToggle;
         [SerializeField] private VirtualJoystick leftJoystick, rightJoystick;
         private Dictionary<string, bool> allButtonDefaultValues = new Dictionary<string, bool>();
+        private readonly Dictionary<TouchscreenButton, bool> gameplayButtonStates = new Dictionary<TouchscreenButton, bool>();
+        private bool daggerfallGUIActive;
 
         private bool hasShownPopup = true; // set to false if you want to show a popup to the user when disabling a button
         private void Awake()
@@ -73,6 +75,8 @@ namespace DaggerfallWorkshop.Game
         }
         public void ReturnAllButtonsToPool()
         {
+            gameplayButtonStates.Clear();
+            daggerfallGUIActive = false;
             List<TouchscreenButton> allButtonsCopy = new(allButtons);
             foreach(var b in allButtonsCopy){
                 ReturnButtonToPool(b);
@@ -125,6 +129,39 @@ namespace DaggerfallWorkshop.Game
         public List<TouchscreenButton> GetAllButtons()
         {
             return allButtons;
+        }
+
+        public void CloseAllDrawersForEditing()
+        {
+            foreach (TouchscreenButton button in allButtons)
+                button.CloseDrawerForEditing();
+        }
+
+        public void SetDaggerfallGUIActive(bool isActive)
+        {
+            if (daggerfallGUIActive == isActive)
+                return;
+
+            daggerfallGUIActive = isActive;
+            if (isActive)
+            {
+                gameplayButtonStates.Clear();
+                foreach (TouchscreenButton button in allButtons)
+                {
+                    gameplayButtonStates[button] = button.gameObject.activeSelf;
+                    bool isMenuControl = button.gameObject.name == "escape" || button.gameObject.name == "enter-key";
+                    button.gameObject.SetActive(isMenuControl && button.gameObject.activeSelf);
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<TouchscreenButton, bool> state in gameplayButtonStates)
+                {
+                    if (state.Key)
+                        state.Key.gameObject.SetActive(state.Value);
+                }
+                gameplayButtonStates.Clear();
+            }
         }
         public TouchscreenButton GetButtonBehaviour(string buttonName)
         {

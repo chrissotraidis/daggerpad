@@ -61,12 +61,14 @@ For command-line exports, signing details, and common fixes, see [BUILDING.md](B
 
 | Input | Gameplay |
 | --- | --- |
-| Touch | Left stick moves. Drag the view to look. The right-side buttons use, attack, run, ready a weapon, open inventory, and pause. The top-left drawer exposes automap, rest, status, quick save/load, travel, journal, hand switch, and magic items. |
-| Keyboard | `WASD` moves, arrow keys turn, `Shift` runs, `Space` jumps, `C` crouches, `M` opens automap, `I` shows status, `Z` readies a weapon, and `Esc` pauses or backs out. Daggerfall's normal bindings remain configurable. |
+| Touch | Use the left half of the screen as a movement pad and the right half to look. Double-tap the right look surface to use or take the object under the crosshair. Use, Attack, and Draw sit in a lower-right thumb cluster; Enter, More, Inventory, Back, and Edit form the bottom-center strip. Hold any button briefly to show its name away from your thumb. More opens a compact utility tray below Daggerfall's status bars with run, automap, rest, status, quick save/load, travel, journal, hand switch, and magic items. |
+| Keyboard | `WASD` moves at a tablet-tuned walking rate, arrow keys turn, `Shift` runs, `Space` jumps, `C` crouches, `M` opens automap, `I` shows status, `Z` readies a weapon, and `Esc` pauses or backs out. Daggerfall's normal bindings remain configurable. |
 | Mouse or trackpad | Relative movement looks around. Primary, secondary, and middle buttons feed Daggerfall's normal mouse actions and work in its menus. iPadOS pointer lock is requested only during active gameplay. |
 | Controller | The inherited Daggerfall Unity controller path remains available; physical-device mapping is still an acceptance gate. |
 
-Tap the gear at the bottom of the HUD to move or remap touch controls. DaggerPad includes balanced, gesture, and accessibility presets and preserves custom layouts across updates.
+Tap the bottom gear to move or remap touch controls. Opening the editor closes More automatically so its utility buttons cannot cover the options panel. DaggerPad includes balanced, gesture, and accessibility presets and preserves custom layouts across updates.
+
+The current physical-device findings and retest checklist are documented in [the July 19 iPad input review](docs/PHYSICAL_IPAD_INPUT_REVIEW_2026-07-19.md).
 
 <table>
   <tr>

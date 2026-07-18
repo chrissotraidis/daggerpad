@@ -5809,6 +5809,7 @@ MonoBehaviour:
   verticalAxisAction: 3
   deadzone: {x: 0, y: 0}
   isInMouseLookMode: 0
+  inputRadiusMultiplier: 1
 --- !u!222 &4737503671774946051
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -11415,7 +11416,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 150}
+  m_SizeDelta: {x: 90, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3516793801701730179
 CanvasRenderer:
@@ -17862,7 +17863,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 400}
+  m_SizeDelta: {x: 240, y: 240}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6489478026621296595
 CanvasRenderer:
@@ -23449,6 +23450,7 @@ MonoBehaviour:
   verticalAxisAction: 1
   deadzone: {x: 0.12, y: 0.12}
   isInMouseLookMode: 0
+  inputRadiusMultiplier: 1.6666666
 --- !u!222 &397096260512006310
 CanvasRenderer:
   m_ObjectHideFlags: 0

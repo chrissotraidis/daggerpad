@@ -80,6 +80,8 @@ Simulator proof currently covers character creation, playable world entry, gamep
 
 Run these on the M2 iPad Pro; the Simulator cannot close them:
 
+Four hardware-input passes on 2026-07-19 found oversized legacy controls, a stale preset selection, callback-dependent movement that displayed without moving, overly strong or doubled keyboard movement, HUD overlap, weak press feedback, touch-only menu recovery gaps, and a version 5 regression that stopped standard action buttons from forwarding their bound keys. Version 6 preserves the accepted movement radius while shrinking the visible pad 40 percent, restores standard actions, adds right-surface double-tap Use, moves the utility tray below the status bars, and closes it before control editing. See [Physical iPad input review — 2026-07-19](PHYSICAL_IPAD_INPUT_REVIEW_2026-07-19.md) and the [fourth-pass screenshot audit](audits/2026-07-19-touch-pass-4/README.md).
+
 - Native Files provider import of the 500+ MB archive and peak temporary storage.
 - 60/120 fps frame pacing while touching the display.
 - One-hour memory, thermal, and battery behavior; then a two-hour memory/jetsam run.

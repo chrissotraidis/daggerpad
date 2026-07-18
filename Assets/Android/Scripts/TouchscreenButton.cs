@@ -100,6 +100,9 @@ namespace DaggerfallWorkshop.Game
         private Vector2 pointerDownPos;
         private Vector2 pointerDownButtonSizeDelta;
         private Vector2 pointerDownButtonAnchoredPos;
+        private Vector3 pointerDownLocalScale;
+        private float pointerDownTime;
+        private bool heldNameShown;
 
         private bool pointerDownWasTouchingResizeButton;
         private bool isPointerDown;
@@ -145,6 +148,27 @@ namespace DaggerfallWorkshop.Game
                 TouchscreenInputManager.Instance.onResetButtonActionsToDefaultValues -= Instance_onResetButtonActionsToDefaultValues;
                 TouchscreenInputManager.Instance.onResetButtonTransformsToDefaultValues -= Instance_onResetButtonTransformsToDefaultValues;
             }
+        }
+        protected override void OnDisable()
+        {
+            if (Application.isPlaying && isPointerDown)
+            {
+                if (InputManager.HasInstance)
+                {
+                    KeyCode actionKey = InputManager.Instance.GetBinding(myAction);
+                    if (actionKey != KeyCode.None)
+                        TouchscreenInputManager.SetKey(actionKey, false);
+                }
+                if (myKey != KeyCode.None)
+                    TouchscreenInputManager.SetKey(myKey, false);
+
+                isPointerDown = false;
+                image.color = spriteColor;
+                transform.localScale = pointerDownLocalScale;
+                if (label)
+                    label.enabled = false;
+            }
+            base.OnDisable();
         }
         private void Update()
         {
@@ -209,6 +233,9 @@ namespace DaggerfallWorkshop.Game
             drawerClosedColor = config.DrawerClosedColor;
             text.text = config.Text;
             text.color = config.TextColor;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 8f;
+            text.fontSizeMax = gameObject.name == "enter-key" ? 22f : 72f;
             text.enabled = !string.IsNullOrEmpty(text.text);
             
             SetResizeButtonActive();
@@ -430,6 +457,15 @@ namespace DaggerfallWorkshop.Game
             ((Image)targetGraphic).color = spriteColor;
         }
 
+        public void CloseDrawerForEditing()
+        {
+            if (!isButtonDrawer)
+                return;
+
+            shouldDrawerBeOpen = false;
+            CloseDrawer();
+        }
+
         public void AddButtonToDrawer(GameObject buttonGO)
         {
             if(buttonsInDrawer.Any(p => p.name == buttonGO.name) || buttonGO == gameObject)
@@ -462,7 +498,7 @@ namespace DaggerfallWorkshop.Game
         {
             if (!isButtonDrawer)
                 return;
-            if (TouchscreenInputManager.Instance.IsEditingControls || shouldDrawerBeOpen)
+            if (shouldDrawerBeOpen)
                 OpenDrawer();
             else
                 CloseDrawer();
@@ -471,6 +507,17 @@ namespace DaggerfallWorkshop.Game
         {
             if (!label)
                 return;
+
+            if (Application.isPlaying && TouchscreenInputManager.Instance && !TouchscreenInputManager.Instance.IsEditingControls)
+            {
+                label.enabled = false;
+                if (isPointerDown && !heldNameShown && Time.unscaledTime - pointerDownTime >= 0.45f)
+                {
+                    heldNameShown = true;
+                    DaggerfallUI.AddHUDText(GetFriendlyControlName(), 1.1f);
+                }
+                return;
+            }
 
             if (isToggleForEditOnScreenControls)
                 label.text = TouchscreenInputManager.Instance && TouchscreenInputManager.Instance.IsEditingControls ? "Done" : "";
@@ -491,6 +538,33 @@ namespace DaggerfallWorkshop.Game
                 label.enabled = true;
             else
                 label.enabled = TouchscreenInputManager.Instance.CurrentlyEditingButton == this && s_shouldShowLabels;
+        }
+
+        private string GetFriendlyControlName()
+        {
+            return gameObject.name switch
+            {
+                "activate-center-object" => "USE / TAKE",
+                "swing-weapon" => "ATTACK",
+                "ready-weapon" => "DRAW / SHEATHE",
+                "inventory" => "INVENTORY",
+                "escape" => "BACK / CLOSE",
+                "enter-key" => "POINTER / LOOK",
+                "drawer" => "MORE ACTIONS",
+                "edit-controls" => "EDIT CONTROLS",
+                "auto-map" => "AUTOMAP",
+                "rest" => "REST",
+                "quick-save" => "QUICK SAVE",
+                "quick-load" => "QUICK LOAD",
+                "status" => "STATUS",
+                "travel-map" => "TRAVEL MAP",
+                "logbook" => "LOGBOOK",
+                "notebook" => "NOTEBOOK",
+                "switch-hand" => "SWITCH HAND",
+                "use-magic-item" => "MAGIC ITEM",
+                "toggle-run" => "RUN / WALK",
+                _ => myAction != InputManager.Actions.Unknown ? myAction.ToString() : myKey.ToString(),
+            };
         }
         private void UpdateButtonTransform()
         {
@@ -740,6 +814,9 @@ namespace DaggerfallWorkshop.Game
         }
         private void OnPointerDownDuringGameplay(PointerEventData eventData)
         {
+            image.color = new Color(1f, 0.78f, 0.32f, spriteColor.a);
+            transform.localScale = pointerDownLocalScale * 0.88f;
+
             if(isButtonDrawer){
                 if(isDrawerOpen){
                     shouldDrawerBeOpen = false;
@@ -752,14 +829,26 @@ namespace DaggerfallWorkshop.Game
                 // gotta save the drawer state
                 TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
             }
-            if (myAction > InputManager.Actions.Unknown) // if I have a custom action, add the action to the input manager manually
+
+            // A sheathed weapon makes the attack control appear broken. On touch,
+            // make the first attack tap ready the weapon and explain the next step.
+            if (myAction == InputManager.Actions.SwingWeapon && GameManager.HasInstance &&
+                GameManager.Instance.WeaponManager.Sheathed)
+            {
+                TouchscreenInputManager.TriggerAction(InputManager.Actions.ReadyWeapon);
+                DaggerfallUI.AddHUDText("Weapon readied - tap ATTACK again.", 1.5f);
+                return;
+            }
+
+            if (myAction > InputManager.Actions.Unknown) // custom actions are queued directly
             {
                 InputManager.Instance.AddAction(myAction);
             }
-            else // else use our touchscreen input manager normally
+            else if (myAction != InputManager.Actions.Unknown) // standard actions use their normal key binding
             {
                 KeyCode actionKey = InputManager.Instance.GetBinding(myAction);
-                TouchscreenInputManager.SetKey(actionKey, true);
+                if (actionKey != KeyCode.None)
+                    TouchscreenInputManager.SetKey(actionKey, true);
             }
             if (myKey != KeyCode.None)
                 TouchscreenInputManager.SetKey(myKey, true);
@@ -767,15 +856,21 @@ namespace DaggerfallWorkshop.Game
         private void OnPointerUpDuringGameplay(PointerEventData eventData)
         {
             KeyCode actionKey = InputManager.Instance.GetBinding(myAction);
-            TouchscreenInputManager.SetKey(actionKey, false);
+            if (actionKey != KeyCode.None)
+                TouchscreenInputManager.SetKey(actionKey, false);
             if(myKey != KeyCode.None)
                 TouchscreenInputManager.SetKey(myKey, false);
+            image.color = spriteColor;
+            transform.localScale = pointerDownLocalScale;
+            if (label)
+                label.enabled = false;
         }
 
         #region overrides
         
         public override void OnPointerDown(PointerEventData eventData)
         {
+            base.OnPointerDown(eventData);
             Debug.Log("OnPointerDown " + gameObject.name);
             if(s_drawerCurrentlyAddingTo)
             {
@@ -810,6 +905,9 @@ namespace DaggerfallWorkshop.Game
                 pointerDownPos = eventData.position;
                 pointerDownButtonSizeDelta = rectTransform.sizeDelta;
                 pointerDownButtonAnchoredPos = rectTransform.anchoredPosition;
+                pointerDownLocalScale = transform.localScale;
+                pointerDownTime = Time.unscaledTime;
+                heldNameShown = false;
                 if (TouchscreenInputManager.Instance.IsEditingControls)
                     OnPointerDownDuringEditMode(eventData);
                 else
@@ -819,7 +917,7 @@ namespace DaggerfallWorkshop.Game
         }
         public override void OnPointerUp(PointerEventData eventData)
         {
-            
+            base.OnPointerUp(eventData);
             isPointerDown = false;
             s_shouldShowLabels = true;
             if (TouchscreenInputManager.Instance.IsEditingControls)

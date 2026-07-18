@@ -146,13 +146,15 @@ namespace DaggerfallWorkshop.Game
                 SetEditControlsActive(false);
 
             _isInDaggerfallGUI = !IsEditingControls && GameManager.IsGamePaused;
-            canvas.enabled = IsTouchscreenActive;
-            buttonsCanvas.enabled = IsTouchscreenActive;
+            bool overlayVisible = IsTouchscreenInputEnabled && isMobilePlatform;
+            TouchscreenButtonEnableDisableManager.Instance.SetDaggerfallGUIActive(_isInDaggerfallGUI);
+            canvas.enabled = overlayVisible;
+            buttonsCanvas.enabled = overlayVisible;
             joystickCanvas.enabled = !IsEditingControls && IsTouchscreenActive;
         }
         private void OnGUI()
         {
-            if (IsTouchscreenActive)
+            if (IsTouchscreenInputEnabled && isMobilePlatform)
             {
                 GUI.depth = 0;
                 DaggerfallUI.DrawTexture(new Rect(0, 0, AScreen.width, AScreen.height), renderTex, ScaleMode.ScaleAndCrop, true);
@@ -217,6 +219,8 @@ namespace DaggerfallWorkshop.Game
         {
             if (!isActive)
                 StopEditingCurrentButton();
+            else
+                TouchscreenButtonEnableDisableManager.Instance.CloseAllDrawersForEditing();
 
             editControlsCanvas.enabled = isActive;
             editControlsBackgroundButton.gameObject.SetActive(isActive);
@@ -265,6 +269,11 @@ namespace DaggerfallWorkshop.Game
         private static bool _isInDaggerfallGUI = false;
 
         public static void SetAxis(InputManager.AxisActions action, float value) => axes[(int)action] = value;
+        public static void ClearInputState()
+        {
+            axes.Clear();
+            keys.Clear();
+        }
         public static float GetAxis(InputManager.AxisActions action)
         {
             if (!isMobilePlatform)

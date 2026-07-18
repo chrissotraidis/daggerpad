@@ -215,7 +215,11 @@ namespace DaggerfallWorkshop.Game
                 // For example, responding to guard at Castle Daggerfall and cursor becomes active after pressing return key
                 // Players often think this is a bug and don't know the default active cursor toggle is return
                 if (Time.realtimeSinceStartup - DaggerfallUI.Instance.timeClosedInputMessageBox > 0.3f)
+                {
                     cursorActive = !cursorActive;
+                    if (TouchscreenInputManager.IsTouchscreenActive)
+                        DaggerfallUI.AddHUDText(cursorActive ? "Pointer mode" : "Look mode", 1.25f);
+                }
             }
 
             // Show cursor and unlock while active

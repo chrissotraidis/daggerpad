@@ -61,16 +61,48 @@ grep -q 'RegenerateDaggerPadLayoutIfMissing("simplified-layout")' Assets/Android
   && grep -q 'RegenerateDaggerPadLayoutIfMissing("accessibility-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "simplified, gesture, and accessibility layouts are bundled" \
   || fail "DaggerPad control presets are missing"
-grep -q 'DaggerPadPresetVersion = 2' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+grep -q 'DaggerPadPresetVersion = 6' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'daggerPadPresetVersion >= DaggerPadPresetVersion' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "built-in touch presets migrate forward without replacing custom layouts" \
   || fail "DaggerPad preset migration guard is missing"
 grep -q 'PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "simplified-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
-  && grep -q 'position = new Vector2(0, 110)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
-  && pass "iOS starts with the balanced layout and a safe editor control" \
+  && grep -q 'layout.leftJoystickEnabled = true' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'layout.rightJoystickEnabled = false' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'SelectSimplifiedLayoutForLegacyIpadSelection' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'position = new Vector2(148, 30)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'position = new Vector2(-170, 30)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "iOS starts with dual touch zones and a safe editor control" \
   || fail "DaggerPad iOS layout defaults are missing"
+grep -q 'CurrentPointerEventData = eventData' Assets/Android/Scripts/VirtualJoystick.cs \
+  && grep -q 'UpdateInputFromPosition(myTouch.position)' Assets/Android/Scripts/VirtualJoystick.cs \
+  && grep -q 'GetCurrentTouchDelta' Assets/Android/Scripts/VirtualJoystick.cs \
+  && grep -q 'inputRadiusMultiplier: 1.6666666' Assets/Android/Prefabs/TouchscreenControlsManager.prefab \
+  && grep -q 'lastLookTapTime' Assets/Android/Scripts/VirtualJoystick.cs \
+  && grep -q 'TouchscreenInputManager.ClearInputState' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'iPadKeyboardMovementScale = 0.55f' Assets/Scripts/Game/InputManager.cs \
+  && grep -q 'A single source owns movement each frame' Assets/Scripts/Game/InputManager.cs \
+  && pass "touch, keyboard, and controller movement are sampled and arbitrated independently" \
+  || fail "DaggerPad dual-zone input routing is incomplete"
+for themed_control in attack use ready inventory pause more settings automap rest save load status travel logbook notebook switch_hand magic run; do
+  [[ -f "Assets/Android/Textures/Resources/daggerpad_${themed_control}.png" ]] \
+    || fail "themed touch asset is missing: daggerpad_${themed_control}.png"
+done
+grep -q '"daggerpad_attack"' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "Daggerfall-style compact touch theme is configured" \
+  || fail "DaggerPad touch theme is not configured"
+grep -q 'base.OnPointerDown(eventData)' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'standard actions use their normal key binding' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'Weapon readied - tap ATTACK again' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'USE / TAKE' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'SetDaggerfallGUIActive' Assets/Android/Scripts/TouchscreenInputManager.cs \
+  && grep -q 'GetKeyUp(KeyCode.Escape, false)' Assets/Scripts/Game/InputManager.cs \
+  && grep -q 'Pointer mode' Assets/Scripts/Game/PlayerMouseLook.cs \
+  && pass "touch actions and keyboard pointer mode provide immediate feedback" \
+  || fail "DaggerPad input feedback is incomplete"
 grep -q 'label.text = TouchscreenInputManager.Instance.*"Done"' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q 'CurrentlyEditingButton == this' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'CloseAllDrawersForEditing' Assets/Android/Scripts/TouchscreenInputManager.cs \
   && grep -q 'SetEditControlsActive(false)' Assets/Android/Scripts/TouchscreenInputManager.cs \
   && pass "touch editor has focused labels and reliable exit paths" \
   || fail "touch editor usability guards are missing"

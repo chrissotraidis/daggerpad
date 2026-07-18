@@ -49,6 +49,7 @@ namespace DaggerfallWorkshop.Game
         const float deadZone = 0.05f;
         const float inputWaitTotal = 0.0833f;
         const float moveAccelerationConst = 9.8f;
+        const float iPadKeyboardMovementScale = 0.55f;
         const float controllerCursorHorizontalSpeed = 900.0f;
         const float controllerCursorVerticalSpeed = 900.0f;
 
@@ -654,8 +655,9 @@ namespace DaggerfallWorkshop.Game
             if (TouchscreenInputManager.IsTouchscreenActive && (Input.touchCount > 0 || Application.isEditor && Input.GetMouseButton(0)))
             {
                 if (VirtualJoystick.JoystickThatIsCurrentlyMouseLooking){
-                    mouseX = VirtualJoystick.JoystickThatIsCurrentlyMouseLooking.CurrentPointerEventData.delta.x * TouchscreenInputManager.Instance.TouchscreenSensitivity * 0.25f;
-                    mouseY = VirtualJoystick.JoystickThatIsCurrentlyMouseLooking.CurrentPointerEventData.delta.y * TouchscreenInputManager.Instance.TouchscreenSensitivity * 0.25f;
+                    Vector2 touchDelta = VirtualJoystick.JoystickThatIsCurrentlyMouseLooking.GetCurrentTouchDelta();
+                    mouseX = touchDelta.x * TouchscreenInputManager.Instance.TouchscreenSensitivity * 0.25f;
+                    mouseY = touchDelta.y * TouchscreenInputManager.Instance.TouchscreenSensitivity * 0.25f;
                 }
             }
             else{
@@ -1220,17 +1222,20 @@ namespace DaggerfallWorkshop.Game
 
         public bool GetBackButtonDown()
         {
-            return Input.GetKeyDown(KeyCode.Escape) || (EnableController && GetKeyDown(joystickUICache[3], false));
+            return Input.GetKeyDown(KeyCode.Escape) || GetKeyDown(KeyCode.Escape, false) ||
+                (EnableController && GetKeyDown(joystickUICache[3], false));
         }
 
         public bool GetBackButtonUp()
         {
-            return Input.GetKeyUp(KeyCode.Escape) || (EnableController && GetKeyUp(joystickUICache[3], false));
+            return Input.GetKeyUp(KeyCode.Escape) || GetKeyUp(KeyCode.Escape, false) ||
+                (EnableController && GetKeyUp(joystickUICache[3], false));
         }
 
         public bool GetBackButton()
         {
-            return Input.GetKey(KeyCode.Escape) || (EnableController && GetKey(joystickUICache[3], false));
+            return Input.GetKey(KeyCode.Escape) || GetKey(KeyCode.Escape, false) ||
+                (EnableController && GetKey(joystickUICache[3], false));
         }
 
         public bool GetKey(KeyCode k, bool useSecondary = true)
@@ -1996,6 +2001,11 @@ namespace DaggerfallWorkshop.Game
         // Enumerate all keyboard actions in progress
         void FindKeyboardActions()
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            float keyboardMovementScale = iPadKeyboardMovementScale;
+#else
+            float keyboardMovementScale = 1f;
+#endif
             var enumerator = existingKeyDict.GetEnumerator();
             while (enumerator.MoveNext())
             {
@@ -2010,17 +2020,17 @@ namespace DaggerfallWorkshop.Game
                     switch (element.Value)
                     {
                         case Actions.MoveRight:
-                            ApplyHorizontalForce(1);
+                            ApplyHorizontalForce(keyboardMovementScale);
                             break;
                         case Actions.MoveLeft:
-                            ApplyHorizontalForce(-1);
+                            ApplyHorizontalForce(-keyboardMovementScale);
                             break;
                         case Actions.MoveForwards:
-                            ApplyVerticalForce(1);
+                            ApplyVerticalForce(keyboardMovementScale);
                             break;
                         case Actions.MoveBackwards:
                             ToggleAutorun = false;
-                            ApplyVerticalForce(-1);
+                            ApplyVerticalForce(-keyboardMovementScale);
                             break;
                         case Actions.TurnLeft:
                             keyboardLookX = -1;
@@ -2039,18 +2049,28 @@ namespace DaggerfallWorkshop.Game
             }
         }
 
-        // processes player movement via joystick
+        // Processes analog movement from controller and touch independently.
         void FindInputAxisActions()
         {
+            Vector2 touchMovement = new Vector2(
+                TouchscreenInputManager.GetAxis(AxisActions.MovementHorizontal),
+                TouchscreenInputManager.GetAxis(AxisActions.MovementVertical));
+            bool keyboardMovementActive = currentActions.Contains(Actions.MoveRight) || currentActions.Contains(Actions.MoveLeft) ||
+                currentActions.Contains(Actions.MoveForwards) || currentActions.Contains(Actions.MoveBackwards);
 
-            if (!EnableController || String.IsNullOrEmpty(movementAxisBindingCache[0]) || String.IsNullOrEmpty(movementAxisBindingCache[1]))
-                return;
+            // A single source owns movement each frame. This prevents iPad keyboard presses
+            // or touch input from being doubled by phantom legacy controller axes.
+            Vector2 analogMovement = touchMovement;
+            if (analogMovement.sqrMagnitude <= JoystickDeadzone * JoystickDeadzone && !keyboardMovementActive &&
+                EnableController && !String.IsNullOrEmpty(movementAxisBindingCache[0]) && !String.IsNullOrEmpty(movementAxisBindingCache[1]))
+            {
+                analogMovement = new Vector2(Input.GetAxis(movementAxisBindingCache[0]), Input.GetAxis(movementAxisBindingCache[1]));
+                analogMovement.x *= GetAxisActionInversion(AxisActions.MovementHorizontal) ? -1f : 1f;
+                analogMovement.y *= GetAxisActionInversion(AxisActions.MovementVertical) ? -1f : 1f;
+            }
 
-            Vector2 joyMovement = new Vector2(Input.GetAxis(movementAxisBindingCache[0]), Input.GetAxis(movementAxisBindingCache[1]));
-            joyMovement.x *= GetAxisActionInversion(AxisActions.MovementHorizontal) ? -1f : 1f;
-            joyMovement.y *= GetAxisActionInversion(AxisActions.MovementVertical) ? -1f : 1f;
-            float horiz = joyMovement.x + TouchscreenInputManager.GetAxis(AxisActions.MovementHorizontal);
-            float vert = joyMovement.y + TouchscreenInputManager.GetAxis(AxisActions.MovementVertical);
+            float horiz = analogMovement.x;
+            float vert = analogMovement.y;
 
             if (vert != 0 || horiz != 0)
             {
@@ -2059,32 +2079,32 @@ namespace DaggerfallWorkshop.Game
                 if (jd <= JoystickDeadzone)
                     return;
 
-                float dist = jd / JoystickMovementThreshold;
+                float dist = JoystickMovementThreshold > 0 ? jd / JoystickMovementThreshold : 1f;
 
                 if (MaximizeJoystickMovement || dist > 1.0F)
                     dist = 1.0F;
 
+                Vector2 scaledMovement = analogMovement.normalized * dist;
+                horiz = scaledMovement.x;
+                vert = scaledMovement.y;
+
                 if (horiz > 0)
                 {
                     currentActions.Add(Actions.MoveRight);
-                    horiz = dist;
                 }
                 else if (horiz < 0)
                 {
                     currentActions.Add(Actions.MoveLeft);
-                    horiz = -dist;
                 }
 
                 if (vert > 0)
                 {
                     currentActions.Add(Actions.MoveForwards);
-                    vert = dist;
                 }
                 else if (vert < 0)
                 {
                     ToggleAutorun = false;
                     currentActions.Add(Actions.MoveBackwards);
-                    vert = -dist;
                 }
 
                 ApplyHorizontalForce(horiz);

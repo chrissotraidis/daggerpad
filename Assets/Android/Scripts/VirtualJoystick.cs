@@ -14,7 +14,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
-using System.Linq;
 
 namespace DaggerfallWorkshop.Game
 {
@@ -28,6 +27,8 @@ namespace DaggerfallWorkshop.Game
         public InputManager.AxisActions verticalAxisAction = InputManager.AxisActions.MovementVertical;
         public Vector2 deadzone = Vector2.zero;
         public bool isInMouseLookMode = false;
+        [Tooltip("Scales the logical drag radius without changing joystick artwork size.")]
+        public float inputRadiusMultiplier = 1f;
 
         public PointerEventData CurrentPointerEventData {get; private set;}
         public Vector2 TouchStartPos {get; private set;}
@@ -43,6 +44,7 @@ namespace DaggerfallWorkshop.Game
 
         private Vector2 inputVector;
         private float joystickRadius;
+        private float visualRadius;
         private bool isTouching = false;
         private Camera myCam;
         private RectTransform rootRectTF;
@@ -50,6 +52,8 @@ namespace DaggerfallWorkshop.Game
         private int myTouchFingerID = -1;
         private bool gestureCombatTouch;
         private bool suppressTapAction;
+        private float lastLookTapTime = -1f;
+        private Vector2 lastLookTapPosition;
 
         void Start()
         {
@@ -65,7 +69,8 @@ namespace DaggerfallWorkshop.Game
             // set vars
             Rect joystickRect = UnityUIUtils.GetScreenspaceRect(background, myCam);
             Rect knobRect = UnityUIUtils.GetScreenspaceRect(knob, myCam);
-            joystickRadius = joystickRect.width / 2f - knobRect.width/2f;
+            visualRadius = joystickRect.width / 2f - knobRect.width/2f;
+            joystickRadius = visualRadius * Mathf.Max(0.1f, inputRadiusMultiplier);
 
             // Initially invisible
             SetJoystickVisibility(false);
@@ -87,18 +92,21 @@ namespace DaggerfallWorkshop.Game
         {
             if (isTouching && myTouchFingerID >= 0)
             {
-                Touch myTouch = Input.touches.FirstOrDefault(p => p.fingerId == myTouchFingerID);
-                if (myTouch.fingerId != myTouchFingerID || myTouch.phase == TouchPhase.Ended || myTouch.phase == TouchPhase.Canceled)
+                if (!TryGetTrackedTouch(out Touch myTouch))
                 {
-                    Debug.Log("Touch ended");
-                    OnPointerUp(null);
+                    if (Input.touchCount == 0)
+                        OnPointerUp(null);
+                    return;
                 }
+
+                if (myTouch.phase == TouchPhase.Ended || myTouch.phase == TouchPhase.Canceled)
+                    OnPointerUp(null);
+                else if (!isInMouseLookMode)
+                    UpdateInputFromPosition(myTouch.position);
             }
         }
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (Cursor.visible)
-                return;
             CurrentPointerEventData = eventData;
             TouchStartPos = eventData.position;
             TouchStartTime = Time.time;
@@ -109,12 +117,14 @@ namespace DaggerfallWorkshop.Game
             knob.position = background.position;
             SetJoystickVisibility(true);
             isTouching = true;
-            OnDrag(eventData);
+            UpdateInputFromPosition(eventData.position);
+            myTouchFingerID = eventData.pointerId;
             for (int i = 0; i < Input.touchCount; i++)
             {
-                if (Vector2.Distance(Input.GetTouch(i).position, TouchStartPos) < 3f)
+                Touch touch = Input.GetTouch(i);
+                if (touch.fingerId == eventData.pointerId || Vector2.Distance(touch.position, TouchStartPos) < 32f)
                 {
-                    myTouchFingerID = Input.GetTouch(i).fingerId;
+                    myTouchFingerID = touch.fingerId;
                     break;
                 }
             }
@@ -140,9 +150,15 @@ namespace DaggerfallWorkshop.Game
             if (!isTouching)
                 return;
 
-            Vector2 direction = eventData.position - TouchStartPos;
+            CurrentPointerEventData = eventData;
+            UpdateInputFromPosition(eventData.position);
+        }
+
+        private void UpdateInputFromPosition(Vector2 pointerPosition)
+        {
+            Vector2 direction = pointerPosition - TouchStartPos;
             inputVector = Vector2.ClampMagnitude(direction / joystickRadius, 1f);
-            Vector2 knobPosScreenSpace = TouchStartPos + inputVector * joystickRadius;
+            Vector2 knobPosScreenSpace = TouchStartPos + inputVector * visualRadius;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(knob.parent as RectTransform, knobPosScreenSpace, myCam, out Vector2 knobPos))
                 knob.localPosition = knobPos;
             bool isMovementJoystick = verticalAxisAction == InputManager.AxisActions.MovementVertical;
@@ -153,6 +169,29 @@ namespace DaggerfallWorkshop.Game
             else if (isMovementJoystick && Mathf.Abs(inputVector.y) / Mathf.Abs(inputVector.x) > 2.4142f)
                 inputVector.x = 0;
             UpdateVirtualAxes(inputVector);
+        }
+
+        public Vector2 GetCurrentTouchDelta()
+        {
+            if (TryGetTrackedTouch(out Touch touch))
+                return touch.deltaPosition;
+            return CurrentPointerEventData != null ? CurrentPointerEventData.delta : Vector2.zero;
+        }
+
+        private bool TryGetTrackedTouch(out Touch trackedTouch)
+        {
+            for (int index = 0; index < Input.touchCount; index++)
+            {
+                Touch touch = Input.GetTouch(index);
+                if (touch.fingerId == myTouchFingerID)
+                {
+                    trackedTouch = touch;
+                    return true;
+                }
+            }
+
+            trackedTouch = default;
+            return false;
         }
 
         private void UpdateVirtualAxes(Vector2 inputVec)
@@ -184,7 +223,23 @@ namespace DaggerfallWorkshop.Game
 
             Vector2 deltaPos = TouchStartPos - eventData.position;
             bool isWithinDeadzone = Mathf.Abs(deltaPos.x) < joystickRadius * 0.1f && Mathf.Abs(deltaPos.y) < joystickRadius * 0.1f;
-            if (JoystickTapsShouldActivateCenterObject && isWithinDeadzone && Time.time-TouchStartTime < .5f)
+            bool isQuickTap = isWithinDeadzone && Time.time - TouchStartTime < .35f;
+            if (isInMouseLookMode && isQuickTap)
+            {
+                bool isDoubleTap = Time.time - lastLookTapTime <= .35f &&
+                    Vector2.Distance(eventData.position, lastLookTapPosition) <= 80f;
+                lastLookTapTime = Time.time;
+                lastLookTapPosition = eventData.position;
+                if (isDoubleTap)
+                {
+                    lastLookTapTime = -1f;
+                    TouchscreenInputManager.TriggerAction(InputManager.Actions.ActivateCenterObject);
+                    DaggerfallUI.AddHUDText("USE / TAKE", 0.8f);
+                }
+                return;
+            }
+
+            if (JoystickTapsShouldActivateCenterObject && isQuickTap)
                 TouchscreenInputManager.TriggerAction(InputManager.Actions.ActivateCenterObject);
         }
 

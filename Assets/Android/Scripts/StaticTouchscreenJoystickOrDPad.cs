@@ -76,8 +76,6 @@ namespace DaggerfallWorkshop.Game
         }
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (Cursor.visible)
-                return;
             knob.gameObject.SetActive(true);
             TouchStartPos = eventData.position;
             knob.position = background.position;
