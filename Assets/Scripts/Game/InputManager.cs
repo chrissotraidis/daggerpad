@@ -659,8 +659,19 @@ namespace DaggerfallWorkshop.Game
                 }
             }
             else{
-                mouseX = CapturedInput.GetAxis("Mouse X");
-                mouseY = CapturedInput.GetAxis("Mouse Y");
+#if UNITY_IOS && !UNITY_EDITOR
+                if (DaggerPad.iOS.DaggerPadPointerInput.IsConnected)
+                {
+                    Vector2 pointerDelta = DaggerPad.iOS.DaggerPadPointerInput.ConsumeDelta();
+                    mouseX = pointerDelta.x * 0.1f;
+                    mouseY = pointerDelta.y * 0.1f;
+                }
+                else
+#endif
+                {
+                    mouseX = CapturedInput.GetAxis("Mouse X");
+                    mouseY = CapturedInput.GetAxis("Mouse Y");
+                }
             }
 
             if (TouchscreenInputManager.IsTouchscreenActive)

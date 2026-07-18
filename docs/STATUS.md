@@ -2,6 +2,18 @@
 
 Date: 2026-07-17
 
+## Input and README refinement snapshot
+
+- Working branch: `agent/input-playtest-readme`, based on the touch-refinement commit `99a581a`.
+- Rechecked touch menus, inventory, automap, text entry, named save/load, keyboard movement/turning, Escape, automap, and status shortcuts on the populated M2 iPad Pro Simulator.
+- Found a platform defect in mouse/trackpad activation: Unity 2022 reports `Input.mousePresent == false` on iOS by design, so the existing code could never enter mouse-look mode.
+- Added a native Apple `GCMouse` bridge for raw mouse/trackpad deltas and three buttons, plus gameplay-only pointer locking and deterministic `GameController.framework` export.
+- Unity completed a clean Simulator export; the updated export gate passed; Xcode compiled the Objective-C++ bridge and produced `BUILD SUCCEEDED` for arm64 iOS 18.5.
+- The installed app logged a native `GCMouse` connection. Simulator automation does not generate physical `GCMouse` deltas, so look feel and pointer buttons remain explicit physical-iPad checks.
+- Installed over the existing app without uninstalling it; imported Daggerfall data and the `Input Run`, `DaggerPad AutoSave`, and `Simulator Smoke` saves remained available.
+- Replaced the minimal README with a screenshot-led fresh-clone install, controls, Simulator, status, limits, and documentation guide; added `BUILDING.md` and a detailed playtest record.
+- Detailed evidence and remaining gates: `docs/PLAYTEST_2026-07-17.md`.
+
 ## Touch UI refinement snapshot
 
 - Working branch: `agent/ui-playtest-refinement`, based on merged `main` at `ff6ccf71d754908ab6ae7763deb4af980590756e`.

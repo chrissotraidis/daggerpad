@@ -67,7 +67,10 @@ namespace DaggerfallWorkshop.Game
                 if (!TouchscreenInputManager.IsTouchscreenActive)
                     return CursorLockMode.Locked;
 
-#if (UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR
+#if UNITY_IOS && !UNITY_EDITOR
+                if (DaggerPad.iOS.DaggerPadPointerInput.IsConnected)
+                    return CursorLockMode.Locked;
+#elif UNITY_ANDROID && !UNITY_EDITOR
                 if (Input.mousePresent)
                     return CursorLockMode.Locked;
 #endif

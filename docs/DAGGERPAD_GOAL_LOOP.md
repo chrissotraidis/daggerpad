@@ -75,6 +75,15 @@ Each checkpoint repeats the same five actions:
 - Exit proof: tomorrow's tester can build and install without rediscovering setup.
 - Status 2026-07-17: build artifacts, prepared ZIP, exact tools, Simulator evidence, and device-only checklist are ready; signing and physical acceptance remain for the connected iPad.
 
+### G8 — input regression and installation handoff
+
+- Re-run touch menus, save/load, keyboard movement, and keyboard shortcuts on the populated iPad Simulator.
+- Replace Unity's unusable iOS mouse-presence check with Apple's native mouse/trackpad delta and button path.
+- Keep pointer locking scoped to active gameplay and preserve every existing touch/Android path.
+- Turn the repository root into a screenshot-led fresh-clone installation guide.
+- Exit proof: source gate, clean Unity export, Xcode export gate, arm64 Simulator build, install-over data retention, keyboard runtime pass, native pointer connection, README link/image/command validation, and a precise physical-device checklist.
+- Status 2026-07-17: all proof passed except physical mouse/trackpad delta feel, sustained touch movement/look, and multi-touch gestures, which the Simulator automation layer cannot produce. See `docs/PLAYTEST_2026-07-17.md`.
+
 ## Stop conditions
 
 Stop and reassess only if both Unity 2022.3 and Unity 6.3 fail to produce an Xcode 26-buildable project, IL2CPP exposes systemic failures rather than isolated platform seams, or core move/look/interact/save/load behavior fails for an engine-level reason. Loss of C# mods, an individual touch screen defect, or performance below 60 fps is not a stop condition.

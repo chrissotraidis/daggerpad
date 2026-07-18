@@ -42,6 +42,11 @@ namespace DaggerPad.iOS
 
         private void Update()
         {
+            bool wantsPointerLock = GameManager.HasInstance &&
+                GameManager.Instance.PlayerMouseLook != null &&
+                GameManager.Instance.PlayerMouseLook.WantsPointerCapture;
+            DaggerPadPointerInput.SetPointerLock(wantsPointerLock);
+
             if (!DaggerfallUnity.Settings.GestureCombat || Cursor.visible ||
                 !GameManager.HasInstance || !GameManager.Instance.StateManager.GameInProgress)
             {

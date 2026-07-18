@@ -19,7 +19,7 @@ step() { printf '\n== %s ==\n' "$1"; }
 [[ -x "$unity" ]] || fail "Unity 2022.3.62f3 was not found at $unity"
 command -v xcodebuild >/dev/null || fail "full Xcode is not active"
 xcrun --find simctl >/dev/null || fail "simctl is not available from the active Xcode"
-[[ -f "$archive" ]] || bash "$root/scripts/prepare-game-data.sh"
+[[ -f "$archive" ]] || bash "$root/scripts/prepare-game-data.sh" "$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER" "$archive"
 
 runtime_id="$(xcrun simctl list runtimes -j | /usr/bin/python3 -c '
 import json, sys

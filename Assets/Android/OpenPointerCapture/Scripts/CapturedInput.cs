@@ -109,6 +109,10 @@ namespace OpenPointerCapture
 
         public static bool GetMouseButtonDown(int button)
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            if (DaggerPad.iOS.DaggerPadPointerInput.GetMouseButtonDown(button))
+                return true;
+#endif
             if (!isInitialized)
             {
                 Debug.LogError("CapturedInput not initialized!");
@@ -133,6 +137,10 @@ namespace OpenPointerCapture
 
         public static bool GetMouseButtonUp(int button)
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            if (DaggerPad.iOS.DaggerPadPointerInput.GetMouseButtonUp(button))
+                return true;
+#endif
             if (!isInitialized)
             {
                 Debug.LogError("CapturedInput not initialized!");
@@ -157,6 +165,10 @@ namespace OpenPointerCapture
 
         public static bool GetMouseButton(int button)
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            if (DaggerPad.iOS.DaggerPadPointerInput.GetMouseButton(button))
+                return true;
+#endif
             if (!isInitialized)
             {
                 Debug.LogError("CapturedInput not initialized!");

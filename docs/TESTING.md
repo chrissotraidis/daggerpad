@@ -40,6 +40,15 @@ Passed on `DaggerPad iPad Pro M2 iOS 18.5`:
 
 Evidence: `Builds/iOS/Evidence/` (ignored build evidence, not release content).
 
+### 2026-07-17 input and responsiveness result
+
+- Rechecked touch taps across drawer, inventory, pause, save, load, automap, setup, and main-menu flows; created and loaded `Input Run` through the iPad text bridge.
+- Proved keyboard movement, turning, Escape, automap, and status shortcuts in the iOS 18.5 Simulator.
+- Reproduced and fixed the iOS mouse/trackpad activation defect caused by Unity's `Input.mousePresent` always returning false on iOS.
+- Added Apple `GCMouse` raw deltas/buttons and gameplay-only pointer lock; the rebuilt Simulator logged a native mouse connection and Xcode compiled the bridge successfully.
+- Simulator automation does not emit physical `GCMouse` delta callbacks and cannot hold a joystick or synthesize multi-touch. Relative pointer feel, pointer buttons, sustained touch movement/look, and gestures remain physical-device gates.
+- Full evidence and the exact boundary are recorded in `docs/PLAYTEST_2026-07-17.md`.
+
 ### 2026-07-17 touch UI refinement result
 
 Passed on the same populated `DaggerPad iPad Pro M2 iOS 18.5` Simulator after installing the revised build over the existing app:

@@ -48,6 +48,11 @@ grep -q 'UIFileSharingEnabled' Assets/iOS/Editor/DaggerPadIosBuild.cs \
 grep -q 'AddressableAssetSettings.BuildPlayerContent' Assets/iOS/Editor/DaggerPadIosBuild.cs \
   && pass "iOS build generates Addressables player content" \
   || fail "iOS Addressables player content build missing"
+grep -q 'GameController.framework' Assets/iOS/Editor/DaggerPadIosBuild.cs \
+  && grep -q 'GCMouse' Assets/Plugins/iOS/DaggerPadPointer.mm \
+  && grep -q 'DaggerPadPointerInput.IsConnected' Assets/Scripts/Game/PlayerMouseLook.cs \
+  && pass "native iPadOS mouse and trackpad input configured" \
+  || fail "native iPadOS mouse and trackpad input is incomplete"
 grep -q 'Recovered Daggerfall data after iOS container relocation' Assets/Scripts/DaggerfallUnity.cs \
   && pass "iOS app updates recover relocated imported data" \
   || fail "iOS container-relocation recovery is missing"

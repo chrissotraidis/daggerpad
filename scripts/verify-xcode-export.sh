@@ -30,6 +30,10 @@ fi
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :UIApplicationSupportsIndirectInputEvents' "$plist")" == 'true' ]] \
   && pass "indirect mouse and trackpad input enabled" \
   || fail "UIApplicationSupportsIndirectInputEvents is not true"
+grep -q 'GameController.framework' "$pbxproj" \
+  && grep -q 'DaggerPadPointer.mm' "$pbxproj" \
+  && pass "native mouse and trackpad bridge exported" \
+  || fail "native mouse and trackpad bridge missing from Xcode export"
 [[ "$(/usr/libexec/PlistBuddy -c 'Print :ITSAppUsesNonExemptEncryption' "$plist")" == 'false' ]] \
   && pass "export-compliance flag configured" \
   || fail "ITSAppUsesNonExemptEncryption is not false"

@@ -2,11 +2,16 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-source_dir="$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER"
-output_dir="${1:-$root/Builds/TestData}"
-output_file="$output_dir/daggerfall.zip"
+default_source="$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER"
+source_dir="${1:-$default_source}"
+output_file="${2:-$root/Builds/TestData/daggerfall.zip}"
+output_dir="$(dirname "$output_file")"
 
-[[ -d "$source_dir/ARENA2" ]] || { printf 'Missing source data: %s\n' "$source_dir" >&2; exit 1; }
+if [[ ! -d "$source_dir/ARENA2" || ! -f "$source_dir/FALL.EXE" ]]; then
+  printf 'Expected a Daggerfall folder containing ARENA2 and FALL.EXE: %s\n' "$source_dir" >&2
+  printf 'Usage: bash scripts/prepare-game-data.sh "/path/to/DAGGER" [output.zip]\n' >&2
+  exit 1
+fi
 mkdir -p "$output_dir"
 rm -f "$output_file"
 
