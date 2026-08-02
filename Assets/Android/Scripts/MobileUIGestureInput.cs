@@ -5,13 +5,15 @@ namespace DaggerfallWorkshop.Game
 {
     /// <summary>
     /// Converts touch-only retro UI gestures into mouse buttons without firing an early left click.
-    /// Tap = left click, stationary long press = right click, two-finger tap = middle click.
+    /// Tap = left click, stationary long press = right click, two-finger tap = middle click,
+    /// and a one-finger vertical swipe = mouse-wheel scrolling.
     /// </summary>
     public static class MobileUIGestureInput
     {
         private const float LongPressSeconds = 0.55f;
         private const float TwoFingerTapSeconds = 0.45f;
         private const float TapMovementInches = 0.12f;
+        private const float ScrollStepInches = 0.10f;
 
         private static readonly bool[] down = new bool[3];
         private static readonly bool[] up = new bool[3];
@@ -23,8 +25,12 @@ namespace DaggerfallWorkshop.Game
         private static bool singleConsumed;
         private static int singleFingerId = -1;
         private static Vector2 singleStartPosition;
+        private static Vector2 singleLastPosition;
         private static float singleStartTime;
         private static float singleMaximumMovement;
+        private static float singleScrollRemainder;
+        private static bool singleScrolling;
+        private static float mouseScroll;
 
         private static bool multiActive;
         private static int firstFingerId = -1;
@@ -64,12 +70,19 @@ namespace DaggerfallWorkshop.Game
             return IsValidButton(button) && held[button];
         }
 
+        public static float GetMouseScroll()
+        {
+            UpdateIfNeeded();
+            return mouseScroll;
+        }
+
         private static void UpdateIfNeeded()
         {
             if (updatedFrame == Time.frameCount)
                 return;
 
             updatedFrame = Time.frameCount;
+            mouseScroll = 0f;
             for (int index = 0; index < held.Length; index++)
             {
                 down[index] = false;
@@ -112,11 +125,35 @@ namespace DaggerfallWorkshop.Game
                 singleConsumed = false;
                 singleFingerId = touch.fingerId;
                 singleStartPosition = touch.position;
+                singleLastPosition = touch.position;
                 singleStartTime = Time.realtimeSinceStartup;
                 singleMaximumMovement = 0f;
+                singleScrollRemainder = 0f;
+                singleScrolling = false;
             }
 
             singleMaximumMovement = Mathf.Max(singleMaximumMovement, Vector2.Distance(singleStartPosition, touch.position));
+            Vector2 totalMovement = touch.position - singleStartPosition;
+            if (!singleScrolling && Mathf.Abs(totalMovement.y) >= TapMovementPixels &&
+                Mathf.Abs(totalMovement.y) > Mathf.Abs(totalMovement.x))
+            {
+                singleScrolling = true;
+                singleConsumed = true;
+                singleScrollRemainder = totalMovement.y;
+            }
+            else if (singleScrolling)
+            {
+                singleScrollRemainder += touch.position.y - singleLastPosition.y;
+            }
+
+            if (singleScrolling && Mathf.Abs(singleScrollRemainder) >= ScrollStepPixels)
+            {
+                int steps = Mathf.Min(12, Mathf.FloorToInt(Mathf.Abs(singleScrollRemainder) / ScrollStepPixels));
+                mouseScroll = Mathf.Sign(singleScrollRemainder) * steps;
+                singleScrollRemainder -= Mathf.Sign(singleScrollRemainder) * steps * ScrollStepPixels;
+            }
+            singleLastPosition = touch.position;
+
             if (!singleConsumed && singleMaximumMovement <= TapMovementPixels &&
                 Time.realtimeSinceStartup - singleStartTime >= LongPressSeconds)
             {
@@ -174,6 +211,8 @@ namespace DaggerfallWorkshop.Game
             singleActive = false;
             singleConsumed = false;
             singleFingerId = -1;
+            singleScrollRemainder = 0f;
+            singleScrolling = false;
         }
 
         private static void Pulse(int button)
@@ -193,6 +232,15 @@ namespace DaggerfallWorkshop.Game
             {
                 float dpi = Screen.dpi > 0f ? Screen.dpi : 160f;
                 return dpi * TapMovementInches;
+            }
+        }
+
+        private static float ScrollStepPixels
+        {
+            get
+            {
+                float dpi = Screen.dpi > 0f ? Screen.dpi : 160f;
+                return dpi * ScrollStepInches;
             }
         }
     }

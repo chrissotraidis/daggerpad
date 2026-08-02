@@ -12,7 +12,7 @@ namespace DaggerfallWorkshop.Game
 {
     public class TouchscreenLayoutsManager : MonoBehaviour
     {
-        private const int DaggerPadPresetVersion = 6;
+        private const int DaggerPadPresetVersion = 9;
         private const string DaggerPadSelectionMigrationKey = "DaggerPad_iOSDefaultSelectionVersion";
 
         public static TouchscreenLayoutsManager Instance{get; private set;}
@@ -683,11 +683,20 @@ namespace DaggerfallWorkshop.Game
             HashSet<string> enabledButtons = new HashSet<string>(visibleControls);
             foreach (string buttonName in drawerControls)
                 enabledButtons.Add(buttonName);
+            enabledButtons.Add("jump");
+            enabledButtons.Add("mount-toggle");
             if (!layout.gestureCombat)
                 enabledButtons.Add("swing-weapon");
 
             foreach (TouchscreenButtonConfiguration button in layout.buttons)
             {
+                // The stock Transport action opens another window. DaggerPad's
+                // built-in layouts instead provide a one-tap mount/dismount toggle.
+                if (button.Name == "transport")
+                {
+                    button.Name = "mount-toggle";
+                    button.DefaultActionMapping = button.ActionMapping = InputManager.Actions.Unknown;
+                }
                 button.DefaultIsEnabled = button.IsEnabled = enabledButtons.Contains(button.Name);
                 ConfigureDaggerPadButton(button, accessibilityLayout);
             }
@@ -726,9 +735,19 @@ namespace DaggerfallWorkshop.Game
                     scale = new Vector2(76, 76);
                     anchor = TouchscreenButtonAnchor.MiddleRight;
                     break;
+                case "mount-toggle":
+                    position = new Vector2(-136, -95);
+                    scale = new Vector2(78, 72);
+                    anchor = TouchscreenButtonAnchor.MiddleRight;
+                    break;
                 case "swing-weapon":
                     position = new Vector2(-30, -205);
-                    scale = new Vector2(96, 96);
+                    scale = new Vector2(108, 108);
+                    anchor = TouchscreenButtonAnchor.MiddleRight;
+                    break;
+                case "jump":
+                    position = new Vector2(-136, -205);
+                    scale = new Vector2(78, 72);
                     anchor = TouchscreenButtonAnchor.MiddleRight;
                     break;
                 case "ready-weapon":
@@ -828,7 +847,10 @@ namespace DaggerfallWorkshop.Game
                 anchor == TouchscreenButtonAnchor.TopMiddle ? TouchscreenButtonAnchor.BottomMiddle : TouchscreenButtonAnchor.TopMiddle;
             button.DefaultPosition = button.Position = position;
             button.DefaultScale = button.Scale = scale;
-            button.Text = button.Name == "enter-key" ? "ENTER" : "";
+            button.Text = button.Name == "enter-key" ? "ENTER" :
+                button.Name == "jump" ? "JUMP" :
+                button.Name == "mount-toggle" ? "MOUNT" :
+                button.Name == "toggle-run" ? "RUN OFF" : "";
             button.TextColor = new Color(0.94f, 0.87f, 0.69f, 1f);
         }
 
@@ -837,7 +859,9 @@ namespace DaggerfallWorkshop.Game
             string textureName = button.Name switch
             {
                 "activate-center-object" => "daggerpad_use",
+                "mount-toggle" => "daggerpad_button_frame",
                 "swing-weapon" => "daggerpad_attack",
+                "jump" => "daggerpad_button_frame",
                 "ready-weapon" => "daggerpad_ready",
                 "inventory" => "daggerpad_inventory",
                 "escape" => "daggerpad_pause",

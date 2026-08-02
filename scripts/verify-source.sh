@@ -61,10 +61,34 @@ grep -q 'RegenerateDaggerPadLayoutIfMissing("simplified-layout")' Assets/Android
   && grep -q 'RegenerateDaggerPadLayoutIfMissing("accessibility-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "simplified, gesture, and accessibility layouts are bundled" \
   || fail "DaggerPad control presets are missing"
-grep -q 'DaggerPadPresetVersion = 6' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+grep -q 'DaggerPadPresetVersion = 9' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'daggerPadPresetVersion >= DaggerPadPresetVersion' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "built-in touch presets migrate forward without replacing custom layouts" \
   || fail "DaggerPad preset migration guard is missing"
+grep -q 'enabledButtons.Add("jump")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'case "jump":' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'new Vector2(-136, -205)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q '"jump" => "daggerpad_button_frame"' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "built-in iPad presets provide a dedicated Jump button beside Attack" \
+  || fail "DaggerPad Jump control is missing"
+grep -q 'enabledButtons.Add("mount-toggle")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'button.Name = "mount-toggle"' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'new Vector2(-136, -95)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'transportManager.ToggleMount()' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"mount-toggle" => "MOUNT / DISMOUNT"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && pass "built-in iPad presets provide a direct mount and dismount toggle" \
+  || fail "DaggerPad mount toggle is missing"
+grep -q 'ScrollStepInches = 0.10f' Assets/Android/Scripts/MobileUIGestureInput.cs \
+  && grep -q 'MobileUIGestureInput.GetMouseScroll()' Assets/Scripts/Game/InputManager.cs \
+  && grep -q 'InputManager.Instance.GetMouseScroll()' Assets/Scripts/Game/UserInterface/BaseScreenComponent.cs \
+  && grep -q 'verticalScrollMode == VerticalScrollModes.PixelWise ? 6 : 1' Assets/Scripts/Game/UserInterface/ListBox.cs \
+  && pass "one-finger vertical swipes scroll classic UI lists" \
+  || fail "DaggerPad touch list scrolling is incomplete"
+grep -q 'button.Name == "toggle-run" ? "RUN OFF"' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && grep -q 'runEnabled ? "RUN ON" : "RUN OFF"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'new Vector2(108, 108)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "Run state is visible and Attack has a larger hit target" \
+  || fail "DaggerPad Run or Attack feedback is incomplete"
 grep -q 'PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "simplified-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'layout.leftJoystickEnabled = true' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'layout.rightJoystickEnabled = false' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \

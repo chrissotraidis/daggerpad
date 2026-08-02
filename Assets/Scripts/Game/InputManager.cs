@@ -1220,6 +1220,13 @@ namespace DaggerfallWorkshop.Game
             return pointerHeld || (EnableController && GetKey(joystickUICache[button], false));
         }
 
+        public float GetMouseScroll()
+        {
+            return MobileUIGestureInput.IsActive
+                ? MobileUIGestureInput.GetMouseScroll()
+                : CapturedInput.GetAxis("Mouse ScrollWheel");
+        }
+
         public bool GetBackButtonDown()
         {
             return Input.GetKeyDown(KeyCode.Escape) || GetKeyDown(KeyCode.Escape, false) ||

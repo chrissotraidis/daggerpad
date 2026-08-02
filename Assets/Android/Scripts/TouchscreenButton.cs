@@ -187,7 +187,35 @@ namespace DaggerfallWorkshop.Game
                 }
 
                 UpdateButtonTransform();
+                UpdateMountToggleText();
+                UpdateRunToggleText();
             }
+        }
+
+        private void UpdateMountToggleText()
+        {
+            if (gameObject.name != "mount-toggle" || !text || !GameManager.HasInstance)
+                return;
+
+            string desiredText = GameManager.Instance.TransportManager.IsOnFoot ? "MOUNT" : "DISMOUNT";
+            if (text.text != desiredText)
+                text.text = desiredText;
+            text.enabled = true;
+        }
+
+        private void UpdateRunToggleText()
+        {
+            if (gameObject.name != "toggle-run" || !text || !InputManager.HasInstance)
+                return;
+
+            bool runEnabled = InputManager.Instance.ToggleRun;
+            string desiredText = runEnabled ? "RUN ON" : "RUN OFF";
+            if (text.text != desiredText)
+                text.text = desiredText;
+            text.enabled = true;
+
+            if (!isPointerDown)
+                image.color = runEnabled ? new Color(1f, 0.78f, 0.32f, spriteColor.a) : spriteColor;
         }
         public void ApplyConfiguration(TouchscreenButtonConfiguration config)
         {
@@ -545,6 +573,7 @@ namespace DaggerfallWorkshop.Game
             return gameObject.name switch
             {
                 "activate-center-object" => "USE / TAKE",
+                "mount-toggle" => "MOUNT / DISMOUNT",
                 "swing-weapon" => "ATTACK",
                 "ready-weapon" => "DRAW / SHEATHE",
                 "inventory" => "INVENTORY",
@@ -828,6 +857,30 @@ namespace DaggerfallWorkshop.Game
                 }
                 // gotta save the drawer state
                 TouchscreenLayoutsManager.Instance.WriteCurrentLayoutToPath();
+            }
+
+            if (gameObject.name == "mount-toggle" && GameManager.HasInstance)
+            {
+                if (GameManager.Instance.PlayerEnterExit.IsPlayerInside)
+                {
+                    DaggerfallUI.AddHUDText("You cannot change transportation indoors.", 1.5f);
+                }
+                else
+                {
+                    TransportManager transportManager = GameManager.Instance.TransportManager;
+                    bool wasOnFoot = transportManager.IsOnFoot;
+                    TransportModes previousMode = transportManager.TransportMode;
+                    transportManager.ToggleMount();
+                    UpdateMountToggleText();
+                    if (wasOnFoot && transportManager.IsOnFoot)
+                        DaggerfallUI.AddHUDText("You do not own a horse or cart.", 1.5f);
+                    else if (!wasOnFoot && transportManager.IsOnFoot)
+                    {
+                        string transportName = previousMode == TransportModes.Horse ? "Horse" : "Cart";
+                        DaggerfallUI.AddHUDText(transportName + " stored - tap MOUNT to ride again.", 2f);
+                    }
+                }
+                return;
             }
 
             // A sheathed weapon makes the attack control appear broken. On touch,

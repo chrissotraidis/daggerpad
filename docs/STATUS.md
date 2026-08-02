@@ -1,6 +1,21 @@
 # DaggerPad implementation status
 
-Date: 2026-07-19
+Date: 2026-08-01
+
+## Version 9 touch usability controls
+
+- The built-in iPad presets now expose a dedicated Jump button immediately left of Attack.
+- The control sends Daggerfall's existing `Jump` action and uses the same framed visual language as the bottom command strip.
+- A context-sensitive Mount / Dismount button now sits immediately left of Use. It toggles an owned horse or cart directly without opening Daggerfall's transport window.
+- One-finger vertical swipes now feed Daggerfall's standard mouse-wheel path in classic UI windows, including the topic and response lists in conversations. Pixel-scrolled lists advance in useful touch-sized increments.
+- The More tray's Run control now reads `RUN OFF` or `RUN ON` and highlights while enabled.
+- Attack retains its accepted center position but grows from `96 x 96` to `108 x 108` points.
+- Dismounting now explains that the horse or cart is stored off-screen and can be recalled with Mount.
+- Preset migration advances to version 9; built-in presets update in place while user-created layouts remain untouched.
+- The source gate, Unity device export, nine-point Xcode export gate, signed arm64 device build, in-place install, and launch all passed on the paired 12.9-inch iPad Pro.
+- Device read-back confirmed `simplified-layout` version 9, the `108 x 108` Attack target, `RUN OFF`, Mount / Dismount, and Jump.
+- The showcase save's malformed horse inventory index was corrected from template ID `94` to runtime group index `1`. Device read-back confirmed `SHOWCASE - Level 10 Horse` still starts mounted and now contains a valid owned horse.
+- The launched DaggerPad process remained live. Physical swipe feel, Run feedback, remounting, and the larger Attack target remain explicit hands-on acceptance checks.
 
 ## Physical iPad version 6 snapshot
 

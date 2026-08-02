@@ -723,13 +723,17 @@ namespace DaggerfallWorkshop.Game.UserInterface
             }
 
             // Handle mouse wheel
-            float mouseScroll = OpenPointerCapture.CapturedInput.GetAxis("Mouse ScrollWheel");
+            float mouseScroll = InputManager.Instance.GetMouseScroll();
             if (mouseOverComponent && mouseScroll != 0)
             {
-                if (mouseScroll > 0)
-                    MouseScrollUp();
-                else if (mouseScroll < 0)
-                    MouseScrollDown();
+                int scrollSteps = Mathf.Max(1, Mathf.RoundToInt(Mathf.Abs(mouseScroll)));
+                for (int step = 0; step < scrollSteps; step++)
+                {
+                    if (mouseScroll > 0)
+                        MouseScrollUp();
+                    else
+                        MouseScrollDown();
+                }
 
                 // Not hovering while scrolling
                 hoverTime = 0;

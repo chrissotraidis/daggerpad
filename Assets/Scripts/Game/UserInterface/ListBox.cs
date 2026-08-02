@@ -515,14 +515,18 @@ namespace DaggerfallWorkshop.Game.UserInterface
         {
             base.MouseScrollUp();
 
-            ScrollUp();
+            int steps = MobileUIGestureInput.IsActive && verticalScrollMode == VerticalScrollModes.PixelWise ? 6 : 1;
+            for (int step = 0; step < steps; step++)
+                ScrollUp();
         }
 
         protected override void MouseScrollDown()
         {
             base.MouseScrollDown();
 
-            ScrollDown();
+            int steps = MobileUIGestureInput.IsActive && verticalScrollMode == VerticalScrollModes.PixelWise ? 6 : 1;
+            for (int step = 0; step < steps; step++)
+                ScrollDown();
         }
 
         #endregion
