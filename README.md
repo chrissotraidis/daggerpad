@@ -23,14 +23,15 @@
 </p>
 
 <p align="center">
-  <a href="docs/PHYSICAL_IPAD_INPUT_REVIEW_2026-07-19.md"><img src="docs/audits/2026-07-19-touch-pass-4/01-gameplay-menu-open.png" alt="DaggerPad running Daggerfall on a physical iPad with Daggerfall-styled touch controls and the utility tray open" width="100%"></a>
+  <a href="docs/images/readme/physical-ipad-snowy-town.jpeg"><img src="docs/images/readme/physical-ipad-snowy-town.jpeg" alt="DaggerPad version 10 running on a physical iPad, riding through a snowy Daggerfall town with contextual touch controls" width="100%"></a><br>
+  <sub>Version 10 running on a 12.9-inch iPad Pro: native landscape gameplay, contextual controls, and the original Daggerfall world.</sub>
 </p>
 
-DaggerPad packages
+DaggerPad brings
 [Daggerfall Unity](https://github.com/Interkarma/daggerfall-unity) as a native
-iPadOS app. It renders through Metal, imports user-provided classic
-Daggerfall files through Files, and adds a landscape touch interface designed
-for movement, looking, combat, menus, and the original game's dense UI.
+iPadOS app. It renders through Metal, imports your classic Daggerfall files
+through Files, and adds a landscape touch interface designed for movement,
+looking, combat, conversations, inventory, and the original game's dense UI.
 
 The mobile baseline comes from
 [Vwing's Daggerfall Unity Android fork](https://github.com/Vwing/daggerfall-unity-android),
@@ -49,14 +50,15 @@ contain Daggerfall, Bethesda game data, or a prepared playable archive.
 
 The current development source has been exported with Unity, signed and built
 for arm64, installed over an existing copy, and launched on a 12.9-inch M2
-iPad Pro. Device read-back confirmed the version 9 layout, preserved app data
-and saves, dedicated Jump and Mount / Dismount controls, the larger Attack
-target, and visible Run state.
+iPad Pro. The in-place update preserved all three existing save slots. The
+version 10 built-in layouts add clearer contextual command labels without
+changing control placement, hit targets, or bindings, and text-field taps now
+explicitly request the iPad software keyboard.
 
-Those checks prove the build, installation, launch, and device-side
-configuration. Hands-on acceptance of the new list scrolling, Run feedback,
-mount flow, larger Attack target, accessory feel, and long-session performance
-is still open.
+Those checks prove the build, installation, launch, and save preservation. The
+current physical-iPad captures below confirm the version 10 labels, gameplay,
+classic interfaces, and layout editor. Software-keyboard behavior without an
+attached physical keyboard and long-session performance remain open checks.
 
 ## Get started
 
@@ -133,7 +135,7 @@ deletes the app's data container.
 
 ## Touch controls
 
-DaggerPad's standard version 9 iPad layout keeps the game view readable while
+DaggerPad's standard version 10 iPad layout keeps the game view readable while
 placing essential actions within thumb reach:
 
 - **Left half:** touch and drag to move from a floating origin.
@@ -141,8 +143,8 @@ placing essential actions within thumb reach:
   object under the crosshair.
 - **Actions:** Use, Mount / Dismount, Attack, Jump, and Draw / Sheathe sit near
   the right thumb.
-- **Commands:** Enter, More, Inventory, Back / Pause, and Edit remain in the
-  bottom strip.
+- **Commands:** Pointer / Look, More / Close, Inventory, Pause / Back, and
+  Edit / Done remain in the bottom strip and describe their current action.
 - **More:** opens automap, rest, quick save/load, status, travel, journals,
   hand switch, magic items, and a visible Run on/off toggle.
 - **Classic lists:** swipe vertically with one finger to scroll conversations,
@@ -160,12 +162,14 @@ placing essential actions within thumb reach:
 | Mount / Dismount | Mount an owned horse or cart outdoors, or return to foot. |
 | Attack | Ready a sheathed weapon on the first tap, then attack. |
 | Jump | Trigger Daggerfall's standard Jump action. |
-| Enter | Switch the hardware pointer between Pointer mode and captured Look mode. |
-| More | Open or close the compact secondary-action tray. |
-| Edit | Open the layout editor after closing any open utility tray. |
+| Pointer / Look / Enter | Switch pointer modes during gameplay; the label shows the next action and changes to Enter in dialogs. |
+| More / Close | Open or close the compact secondary-action tray. |
+| Pause / Back | Pause gameplay or close the current Daggerfall window. |
+| Edit / Done | Open or close the layout editor after closing any open utility tray. |
 
 Hold a visible control briefly to show its name in the HUD, away from the
-finger covering the button. The bundled `simplified-layout`, `gesture-layout`,
+finger covering the button. Automap is identified as `LOCAL MAP` to distinguish
+it from the travel map. The bundled `simplified-layout`, `gesture-layout`,
 and `accessibility-layout` presets cover the standard, gesture-combat, and
 larger-control starting points.
 
@@ -196,39 +200,42 @@ only during active gameplay, not while classic menus are open.
 
 ## Current screenshots
 
+All five captures in this README come from the current version 10 build running
+on a physical 12.9-inch iPad Pro. Click any image for the full-size view.
+
 <table>
   <tr>
     <td width="50%">
-      <a href="docs/images/readme/setup.jpeg"><img src="docs/images/readme/setup.jpeg" alt="DaggerPad setup screen showing the Files-visible data location"></a>
+      <a href="docs/images/readme/physical-ipad-control-editor.jpeg"><img src="docs/images/readme/physical-ipad-control-editor.jpeg" alt="DaggerPad on-screen control editor over live gameplay on a physical iPad"></a>
     </td>
     <td width="50%">
-      <a href="docs/images/readme/main-menu.jpeg"><img src="docs/images/readme/main-menu.jpeg" alt="Daggerfall main menu running in DaggerPad on iPad Simulator"></a>
+      <a href="docs/images/readme/physical-ipad-inventory.jpeg"><img src="docs/images/readme/physical-ipad-inventory.jpeg" alt="Classic Daggerfall inventory and character equipment screen running on a physical iPad"></a>
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Files-based setup</strong><br>Import once, then keep data and saves visible in Files.</td>
-    <td align="center"><strong>Complete local game</strong><br>Start or load Daggerfall directly on the iPad.</td>
+    <td align="center"><strong>Controls that fit the game</strong><br>Move, resize, remap, import, or export layouts without leaving gameplay.</td>
+    <td align="center"><strong>The complete classic interface</strong><br>Inventory, equipment, encumbrance, and item actions remain intact.</td>
   </tr>
 </table>
 
 <table>
   <tr>
     <td width="50%">
-      <a href="docs/images/readme/inventory.jpeg"><img src="docs/images/readme/inventory.jpeg" alt="Daggerfall inventory running in DaggerPad on iPad Simulator"></a>
+      <a href="docs/images/readme/physical-ipad-conversation.jpeg"><img src="docs/images/readme/physical-ipad-conversation.jpeg" alt="Classic Daggerfall conversation interface with touch-scrollable topics on a physical iPad"></a>
     </td>
     <td width="50%">
-      <a href="docs/images/readme/automap.jpeg"><img src="docs/images/readme/automap.jpeg" alt="Privateer's Hold automap running in DaggerPad on iPad Simulator"></a>
+      <a href="docs/images/readme/physical-ipad-interior.jpeg"><img src="docs/images/readme/physical-ipad-interior.jpeg" alt="DaggerPad first-person indoor interaction with contextual touch controls on a physical iPad"></a>
     </td>
   </tr>
   <tr>
-    <td align="center"><strong>Inventory and equipment</strong><br>The original item and character interfaces remain intact.</td>
-    <td align="center"><strong>Full automap</strong><br>Reach the interior map from touch controls or keyboard.</td>
+    <td align="center"><strong>Conversation by touch</strong><br>Browse classic topics and responses with one-finger list scrolling.</td>
+    <td align="center"><strong>Exploration and interaction</strong><br>Look, use, fight, mount, and navigate with a restrained overlay.</td>
   </tr>
 </table>
 
-The hero image is from a physical-iPad input pass. The four interface captures
-are from the verified iOS 18.5 iPad Pro Simulator flow. All game data used for
-these captures was supplied locally and is not part of this repository.
+The snowy-town hero shows mounted outdoor play and the normal version 10 command
+strip. All game data used for these captures was supplied locally and is not
+part of this repository.
 
 ## Simulator test
 
@@ -257,7 +264,7 @@ the exact evidence boundary and physical-iPad checklist.
 | Rendering | Metal rendering works in Simulator and on physical iPad |
 | Game setup | Files-based ZIP import, validation, local extraction, and path recovery after app-container relocation work |
 | Gameplay | Character creation, Privateer's Hold, pause, inventory, automap, named saves, load, and suspension autosave recovery have been exercised |
-| Touch | Dual-zone movement/look, core actions, utility tray, Daggerfall-styled controls, three presets, and an in-app layout editor are included |
+| Touch | Dual-zone movement/look, contextual commands, core actions, touch-scrollable classic lists, three presets, and an in-app layout editor are included |
 | Input options | Touch, keyboard, native `GCMouse` mouse/trackpad input, and the inherited iOS controller path are present |
 | Updates | Imported data, custom layouts, and saves can survive an in-place app update |
 
@@ -341,9 +348,10 @@ not open issues requesting game data or download links.
 <summary><strong>Does it really run on a physical iPad?</strong></summary>
 
 Yes. Development builds have been signed, installed, launched, and exercised
-on a 12.9-inch M2 iPad Pro. The current version 9 build and layout configuration
-are present on that device, but its newest touch changes and longer performance
-passes still require hands-on acceptance.
+on a 12.9-inch M2 iPad Pro. The current version 10 build is installed and
+running there with the previous saves intact. The images above were captured
+from that device. Detached-keyboard text entry and longer performance passes
+still require hands-on acceptance.
 </details>
 
 <details>

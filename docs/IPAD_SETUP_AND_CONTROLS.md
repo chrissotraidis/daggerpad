@@ -1,6 +1,6 @@
 # iPad setup and controls
 
-This is the canonical handoff for building DaggerPad, installing it on an iPad, preserving an existing installation, and using the current version 9 input layout.
+This is the canonical handoff for building DaggerPad, installing it on an iPad, preserving an existing installation, and using the current version 10 input layout.
 
 ## What DaggerPad requires
 
@@ -46,7 +46,7 @@ Build and run the same bundle identifier, `com.chrissotraidis.daggerpad`, over t
 
 An in-place Xcode or `devicectl` install replaces the application bundle while retaining the app data container. Back up `DaggerfallUnity/Saves` through Files before any signing, bundle-identifier, or provisioning change.
 
-The version 9 build was exported with Unity, signed by Xcode, installed over the existing physical-iPad app, launched, and read back from the device container. The selected `simplified-layout`, existing app container, and prior saves were retained; device read-back confirmed the Mount / Dismount control beside Use, Jump beside Attack, the larger Attack target, and the visible Run state.
+The version 10 build was exported with Unity, signed by Xcode, installed over the existing physical-iPad app, and launched. The existing app container and all three save slots were retained. Built-in layouts migrate when gameplay initializes; user-created layouts remain untouched. Tapping a writable Daggerfall text field explicitly activates Unity's iPad keyboard bridge.
 
 ## Command-line device build
 
@@ -86,7 +86,7 @@ xcrun devicectl device install app \
   Builds/iOS/DeviceDerivedData/Build/Products/Debug-iphoneos/DaggerPad.app
 ```
 
-## Version 9 touch layout
+## Version 10 touch layout
 
 The built-in `simplified-layout` is the default iPad layout. It uses two simultaneous screen-half surfaces rather than a permanent pair of sticks.
 
@@ -100,13 +100,13 @@ The built-in `simplified-layout` is the default iPad layout. It uses two simulta
 | Attack | If the weapon is sheathed, the first tap readies it and explains that the next tap attacks. With a ready weapon, the button attacks. Version 9 enlarges its target without moving its center. |
 | Jump | Jumps using Daggerfall's normal `Jump` action. The button sits immediately left of Attack. |
 | Draw / Sheathe | Toggles the equipped weapon's ready state. |
-| Enter | Switches the hardware pointer between Pointer mode and captured Look mode. Its HUD message confirms the new mode. |
-| More | Opens the secondary-action tray below Daggerfall's native status bars. |
+| Pointer / Look / Enter | Switches between Pointer mode and captured Look mode. During gameplay the label names the next action; in dialogs it reads `ENTER`. |
+| More / Close | Opens or closes the secondary-action tray below Daggerfall's native status bars. |
 | Inventory | Opens the backpack/inventory window. |
-| Back / Pause | Pauses during gameplay and closes or backs out of Daggerfall windows. |
-| Edit | Opens the on-screen control editor. Any open More tray closes first. |
+| Pause / Back | Pauses during gameplay and closes or backs out of Daggerfall windows. |
+| Edit / Done | Opens or closes the on-screen control editor. Any open More tray closes first. |
 
-Hold a visible control for about half a second to show its name in the HUD, away from the finger covering the button.
+Hold a visible control for about half a second to show its name in the HUD, away from the finger covering the button. Automap reports `LOCAL MAP`, which distinguishes it from the travel map, and a first-run hint explains that controls can be held for their names.
 
 In Daggerfall's classic menus, drag one finger vertically over a list to scroll it. This uses the same component path as a mouse wheel and works in conversation topics and responses, inventory-style lists, spell lists, journals, and other windows that already support wheel scrolling.
 
@@ -116,11 +116,11 @@ More contains automap, rest, quick save, quick load, status, travel, logbook, no
 
 ### Editing and presets
 
-Tap the bottom gear to open **On-Screen Control Options**. The editor can move, resize, enable, disable, and remap controls. Tap the gear/Done control again, tap empty space after deselecting a control, or press Escape to leave.
+Tap the bottom `EDIT` control to open **On-Screen Control Options**. The editor can move, resize, enable, disable, and remap controls. Tap `DONE` again, tap empty space after deselecting a control, or press Escape to leave.
 
 The bundled presets are:
 
-- `simplified-layout`: standard version 9 iPad controls.
+- `simplified-layout`: standard version 10 iPad controls.
 - `gesture-layout`: gesture combat without a redundant Attack button.
 - `accessibility-layout`: enlarged controls and full opacity.
 
@@ -155,7 +155,7 @@ bash scripts/verify-source.sh "/path/to/DAGGER"
 bash scripts/verify-xcode-export.sh Builds/iOS/Device
 ```
 
-The version 9 source compiled in Unity, passed the Xcode export checks, produced a signed physical-device build, installed, launched, and retained the expected device-side preset configuration. Device read-back also confirmed the corrected horse ownership record in `SHOWCASE - Level 10 Horse`. Physical-input checks remain below.
+The version 10 source compiled in Unity, passed the Xcode export checks, produced a strictly verified signed arm64 physical-device build, installed in place, and launched. Device read-back confirmed that `SAVE0`, `SAVE1`, and `SAVE2` retained their prior timestamps. The built-in preset migration and visual behavior initialize after entering gameplay and remain part of the hands-on checks below.
 
 Physical touch feel cannot be closed by source or build verification alone. The remaining acceptance pass is:
 
@@ -164,11 +164,12 @@ Physical touch feel cannot be closed by source or build verification alone. The 
 3. Dismount and remount the showcase horse, confirming the stored-horse message and `MOUNT` / `DISMOUNT` label changes.
 4. Swipe vertically through both conversation columns and at least one inventory-style list.
 5. Toggle Run in More and confirm both the text and highlight change.
-6. Verify Use, Attack, Jump, Draw, Inventory, Pause, Enter, and every other More action in-game.
+6. Confirm Pointer / Look alternates with the next action, More changes to Close, Pause changes to Back in windows, and Edit changes to Done.
 7. Double-tap a door, lever, or lootable object and confirm it activates exactly once.
 8. Open More, save the game, and confirm neither interface covers the other.
 9. Enter and exit control editing with More open.
-10. Compare walk, run, touch, and keyboard travel over the same timed route.
-11. Complete the longer frame-pacing, thermal, battery, memory, and suspension-recovery passes in `docs/TESTING.md`.
+10. Disconnect the physical keyboard, tap a Daggerfall text-entry prompt, and confirm the iPad software keyboard opens and accepts text.
+11. Compare walk, run, touch, and keyboard travel over the same timed route.
+12. Complete the longer frame-pacing, thermal, battery, memory, and suspension-recovery passes in `docs/TESTING.md`.
 
 The complete physical-input history and screenshot audits are in `docs/PHYSICAL_IPAD_INPUT_REVIEW_2026-07-19.md`.

@@ -189,7 +189,38 @@ namespace DaggerfallWorkshop.Game
                 UpdateButtonTransform();
                 UpdateMountToggleText();
                 UpdateRunToggleText();
+                UpdateDaggerPadContextualText();
             }
+        }
+
+        private bool UsesDaggerPadContextualText()
+        {
+            return layoutParentName == "simplified-layout" ||
+                layoutParentName == "gesture-layout" ||
+                layoutParentName == "accessibility-layout";
+        }
+
+        private void UpdateDaggerPadContextualText()
+        {
+            if (!text || !UsesDaggerPadContextualText())
+                return;
+
+            string desiredText = gameObject.name switch
+            {
+                "enter-key" => !GameManager.HasInstance || GameManager.IsGamePaused ? "ENTER" :
+                    GameManager.Instance.PlayerMouseLook.cursorActive ? "LOOK" : "POINTER",
+                "escape" => GameManager.HasInstance && !GameManager.IsGamePaused ? "PAUSE" : "BACK",
+                "drawer" => isDrawerOpen ? "CLOSE" : "MORE",
+                "edit-controls" => TouchscreenInputManager.Instance && TouchscreenInputManager.Instance.IsEditingControls ? "DONE" : "EDIT",
+                _ => null,
+            };
+
+            if (desiredText == null)
+                return;
+
+            if (text.text != desiredText)
+                text.text = desiredText;
+            text.enabled = true;
         }
 
         private void UpdateMountToggleText()
@@ -581,7 +612,7 @@ namespace DaggerfallWorkshop.Game
                 "enter-key" => "POINTER / LOOK",
                 "drawer" => "MORE ACTIONS",
                 "edit-controls" => "EDIT CONTROLS",
-                "auto-map" => "AUTOMAP",
+                "auto-map" => "LOCAL MAP",
                 "rest" => "REST",
                 "quick-save" => "QUICK SAVE",
                 "quick-load" => "QUICK LOAD",
