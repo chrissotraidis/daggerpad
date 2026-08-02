@@ -2,7 +2,7 @@
 
 This is the shortest supported path from a fresh clone to a running iPad build.
 
-For the current version 6 touch map, in-place update rules, device commands, and physical acceptance checklist, see [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md).
+For the current version 9 touch map, in-place update rules, device commands, and physical acceptance checklist, see [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md).
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ You also need an Apple ID for development signing and your own Daggerfall instal
 git clone https://github.com/chrissotraidis/daggerpad.git
 cd daggerpad
 bash scripts/prepare-game-data.sh "/path/to/your/DAGGER"
-bash scripts/verify-source.sh
+bash scripts/verify-source.sh "/path/to/your/DAGGER"
 ```
 
 Add the repository folder in Unity Hub and open it with `2022.3.62f3`. Let the first import finish before exporting an Xcode project.
@@ -71,11 +71,11 @@ This script exports, builds, creates or reuses `DaggerPad iPad Pro M2 iOS 18.5`,
 ## Verification commands
 
 ```bash
-bash scripts/verify-source.sh
+bash scripts/verify-source.sh "/path/to/your/DAGGER"
 bash scripts/verify-xcode-export.sh Builds/iOS/Simulator
 ```
 
-The first checks the pinned Unity/iOS configuration and real game-data contract. The second checks a generated Xcode export, including Addressables, Files integration, iPad targeting, indirect input, and the native pointer framework.
+The first checks the pinned Unity/iOS configuration and the game-data folder you provide. Without an argument, it validates the default ignored `ref/` folder when present and otherwise skips only the optional data checks. The second checks a generated Xcode export, including Addressables, Files integration, iPad targeting, indirect input, and the native pointer framework.
 
 ## Common fixes
 

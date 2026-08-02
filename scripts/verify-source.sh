@@ -5,7 +5,12 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
 pass() { printf 'PASS  %s\n' "$1"; }
+skip() { printf 'SKIP  %s\n' "$1"; }
 fail() { printf 'FAIL  %s\n' "$1" >&2; exit 1; }
+
+(( $# <= 1 )) || fail 'Usage: bash scripts/verify-source.sh [path/to/DAGGER]'
+default_dagger="$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER"
+dagger="${1:-$default_dagger}"
 
 [[ "$(awk '/m_EditorVersion:/ { print $2; exit }' ProjectSettings/ProjectVersion.txt)" == "2022.3.62f3" ]] \
   && pass "Unity version pinned to 2022.3.62f3" \
@@ -145,20 +150,23 @@ fi
 bash -n scripts/verify-source.sh scripts/prepare-game-data.sh scripts/verify-xcode-export.sh scripts/run-simulator-smoke.sh
 pass "build and simulator harness scripts parse"
 
-arena="$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER/ARENA2"
-dagger="$root/ref/The Elder Scrolls Daggerfall/DF/DAGGER"
-[[ -d "$arena" ]] || fail "reference ARENA2 folder missing"
+if (( $# == 1 )) || [[ -e "$default_dagger" ]]; then
+  arena="$dagger/ARENA2"
+  [[ -d "$arena" ]] || fail "Daggerfall data folder is missing ARENA2: $dagger"
 
-texture_count="$(find "$arena" -maxdepth 1 -type f -iname 'TEXTURE.*' | wc -l | tr -d ' ')"
-video_count="$(find "$arena" -maxdepth 1 -type f -iname '*.VID' | wc -l | tr -d ' ')"
-(( texture_count >= 472 )) && pass "reference data has $texture_count texture archives" || fail "reference data has only $texture_count texture archives"
-(( video_count >= 17 )) && pass "reference data has $video_count videos" || fail "reference data has only $video_count videos"
+  texture_count="$(find "$arena" -maxdepth 1 -type f -iname 'TEXTURE.*' | wc -l | tr -d ' ')"
+  video_count="$(find "$arena" -maxdepth 1 -type f -iname '*.VID' | wc -l | tr -d ' ')"
+  (( texture_count >= 472 )) && pass "reference data has $texture_count texture archives" || fail "reference data has only $texture_count texture archives"
+  (( video_count >= 17 )) && pass "reference data has $video_count videos" || fail "reference data has only $video_count videos"
 
-for required in ARCH3D.BSA BLOCKS.BSA MAPS.BSA DAGGER.SND WOODS.WLD MONSTER.BSA FLATS.CFG PAINT.DAT TEXT.RSC SPELLS.STD; do
-  [[ -f "$arena/$required" ]] || fail "reference data is missing $required"
-done
-[[ -f "$dagger/FALL.EXE" ]] || fail "reference data is missing FALL.EXE"
-pass "reference data contains the runtime-required files"
+  for required in ARCH3D.BSA BLOCKS.BSA MAPS.BSA DAGGER.SND WOODS.WLD MONSTER.BSA FLATS.CFG PAINT.DAT TEXT.RSC SPELLS.STD; do
+    [[ -f "$arena/$required" ]] || fail "reference data is missing $required"
+  done
+  [[ -f "$dagger/FALL.EXE" ]] || fail "reference data is missing FALL.EXE"
+  pass "reference data contains the runtime-required files"
+else
+  skip "local Daggerfall data not present; source checks remain complete"
+fi
 
 git diff --check
 pass "git diff has no whitespace errors"

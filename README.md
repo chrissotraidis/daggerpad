@@ -7,10 +7,6 @@
 </p>
 
 <p align="center">
-  <a href="https://www.buymeacoffee.com/chrissotraidis"><img alt="Buy me a coffee" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="36"></a>
-</p>
-
-<p align="center">
   <a href="#get-started"><img alt="iPadOS 15+" src="https://img.shields.io/badge/iPadOS-15%2B-0A84FF?logo=apple"></a>
   <a href="BUILDING.md"><img alt="Unity 2022.3.62f3" src="https://img.shields.io/badge/Unity-2022.3.62f3-000000?logo=unity"></a>
   <a href="#what-works"><img alt="Metal renderer" src="https://img.shields.io/badge/renderer-Metal-5E5CE6"></a>
@@ -298,14 +294,16 @@ introduces that data only after installation through the iPadOS Files picker.
 Before handing off a source build, run:
 
 ```sh
-bash scripts/verify-source.sh
+bash scripts/verify-source.sh "/path/to/your/DAGGER"
 bash scripts/verify-xcode-export.sh Builds/iOS/Device
 ```
 
 The first command checks the pinned Unity/iPadOS configuration, touch contract,
-required local game-data structure, script syntax, and whitespace. The second
-checks a generated Xcode export for Addressables, Files integration, iPad
-targeting, indirect input, and the native pointer framework.
+the game-data folder you provide, script syntax, and whitespace. If you omit
+the folder, local game-data checks run only when the default ignored `ref/`
+folder exists. The second command checks a generated Xcode export for
+Addressables, Files integration, iPad targeting, indirect input, and the native
+pointer framework.
 
 Generated Unity state, Xcode projects, build products, prepared ZIPs, classic
 game files, saves, and local evidence are ignored and must never be committed.
@@ -399,7 +397,7 @@ bundled with DaggerPad.
 | [`Assets/Android/Scripts/`](Assets/Android/Scripts/) | Shared mobile touch controls and layout management |
 | [`scripts/prepare-game-data.sh`](scripts/prepare-game-data.sh) | Validate local classic files and create the ignored import ZIP |
 | [`scripts/run-simulator-smoke.sh`](scripts/run-simulator-smoke.sh) | Deterministic iPad Simulator build, install, launch, and evidence path |
-| [`scripts/verify-source.sh`](scripts/verify-source.sh) | Source, configuration, touch, and local-data gate |
+| [`scripts/verify-source.sh`](scripts/verify-source.sh) | Source, configuration, touch, and optional local-data gate |
 | [`BUILDING.md`](BUILDING.md) | Fresh-clone build, signing, Simulator, and troubleshooting guide |
 | [`docs/IPAD_SETUP_AND_CONTROLS.md`](docs/IPAD_SETUP_AND_CONTROLS.md) | Physical-iPad setup, safe updates, controls, and acceptance checklist |
 | [`docs/STATUS.md`](docs/STATUS.md) | Implementation evidence and current boundaries |
@@ -408,15 +406,12 @@ bundled with DaggerPad.
 Generated source state, build directories, app products, prepared game-data
 archives, and user saves are local-only and ignored.
 
-## Contributing and support
+## Feedback and contributing
 
 Use [GitHub Issues](https://github.com/chrissotraidis/daggerpad/issues) for
 reproducible gameplay or platform defects. Include the DaggerPad commit, iPad
 model, iPadOS version, and exact reproduction steps. Never attach or request
 game data, prepared archives, or saves containing copyrighted material.
-
-If DaggerPad has been useful, you can
-[support its development](https://www.buymeacoffee.com/chrissotraidis).
 
 ## Legal and acknowledgements
 

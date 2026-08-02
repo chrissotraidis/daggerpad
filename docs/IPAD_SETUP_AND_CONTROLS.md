@@ -20,7 +20,7 @@ Clone and validate the source:
 git clone https://github.com/chrissotraidis/daggerpad.git
 cd daggerpad
 bash scripts/prepare-game-data.sh "/path/to/DAGGER"
-bash scripts/verify-source.sh
+bash scripts/verify-source.sh "/path/to/DAGGER"
 ```
 
 `prepare-game-data.sh` creates `Builds/TestData/daggerfall.zip`. The ZIP is ignored by Git and must not be committed or distributed.
@@ -151,7 +151,7 @@ Daggerfall's bindings remain configurable. Trackpad pointer lock is requested on
 Before handing off a build, run:
 
 ```bash
-bash scripts/verify-source.sh
+bash scripts/verify-source.sh "/path/to/DAGGER"
 bash scripts/verify-xcode-export.sh Builds/iOS/Device
 ```
 
