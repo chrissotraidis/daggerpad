@@ -61,12 +61,12 @@ current physical-iPad captures below confirm the version 10 labels, gameplay,
 classic interfaces, and layout editor. Software-keyboard behavior without an
 attached physical keyboard and long-session performance remain open checks.
 
-The latest package check used clean source commit `90ed9e9`, Unity
-`2022.3.62f3`, and Xcode 26.6 to produce a signed arm64 Release app and the
-local `DaggerPad-0.1.0-90ed9e9-development.ipa`. The 57 MiB IPA passed ZIP
-integrity, strict code-signature, bundle, architecture, iOS 15 deployment-floor,
-and game-data-exclusion checks; its SHA-256 is
-`d5d84febcb67f185a53c57103a8de6dafdb2de3836218cd365c0ea19d89e8a5f`.
+The latest package check used a separate clean checkout at source commit
+`80cd8e5`, Unity `2022.3.62f3`, and Xcode 26.6 to produce a signed arm64
+Release app and the local `DaggerPad-0.1.0-80cd8e5-development.ipa`. The 60 MiB
+IPA passed ZIP integrity, strict code-signature, bundle, architecture, iOS 15
+deployment-floor, and game-data-exclusion checks; its SHA-256 is
+`bf2d5efe5f68d5c2a919e541d422a3fd03d44149c2d02a19a0a7e58a031c4361`.
 An in-place install on the 12.9-inch M2 iPad Pro running iPadOS 26.5.2 preserved
 all 39 save-container entries. A fresh launch remained live through the device
 process check and rendered the expected native landscape setup screen, Files
