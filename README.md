@@ -44,6 +44,7 @@ contain Daggerfall, Bethesda game data, or a prepared playable archive.
 | Option | Status | What to do |
 |---|---|---|
 | Public `.ipa` | **Not published** | DaggerPad does not currently provide a downloadable binary. Build and sign it locally with your Apple ID. |
+| Local development `.ipa` | **Verified August 2, 2026** | A development-signed Release IPA was built, audited, installed, and launched on the physical test iPad. It remains a local, ignored artifact tied to the builder's Apple development profile. |
 | Local iPad build | **Available now** | Follow the fresh-clone instructions below, then sign the generated Xcode project with your Apple development team. |
 | Simulator | **Available now** | Best for setup, UI, and repeatable smoke testing; it is not a substitute for physical-device testing. |
 | App Store / TestFlight | **Not announced** | No listing or public TestFlight currently exists. |
@@ -59,6 +60,19 @@ Those checks prove the build, installation, launch, and save preservation. The
 current physical-iPad captures below confirm the version 10 labels, gameplay,
 classic interfaces, and layout editor. Software-keyboard behavior without an
 attached physical keyboard and long-session performance remain open checks.
+
+The latest package check used clean source commit `90ed9e9`, Unity
+`2022.3.62f3`, and Xcode 26.6 to produce a signed arm64 Release app and the
+local `DaggerPad-0.1.0-90ed9e9-development.ipa`. The 57 MiB IPA passed ZIP
+integrity, strict code-signature, bundle, architecture, iOS 15 deployment-floor,
+and game-data-exclusion checks; its SHA-256 is
+`d5d84febcb67f185a53c57103a8de6dafdb2de3836218cd365c0ea19d89e8a5f`.
+An in-place install on the 12.9-inch M2 iPad Pro running iPadOS 26.5.2 preserved
+all 39 save-container entries. A fresh launch remained live through the device
+process check and rendered the expected native landscape setup screen, Files
+path, controls, and Play flow. This is build, packaging, installation, launch,
+and visual smoke evidence; it does not replace hands-on control or long-session
+performance testing.
 
 ## Get started
 
@@ -333,8 +347,11 @@ game files, saves, and local evidence are ignored and must never be committed.
 <details>
 <summary><strong>Where is the IPA?</strong></summary>
 
-There is no public DaggerPad IPA yet. Build the app locally, select your Apple
-development team in Xcode, and install it with your own signing identity.
+There is no public DaggerPad IPA yet. A local development-signed IPA has been
+built and verified on the physical test iPad, but it is tied to the builder's
+Apple development profile and is not committed or published. Build the app
+locally, select your Apple development team in Xcode, and install it with your
+own signing identity.
 </details>
 
 <details>
