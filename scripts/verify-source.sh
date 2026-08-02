@@ -66,7 +66,7 @@ grep -q 'RegenerateDaggerPadLayoutIfMissing("simplified-layout")' Assets/Android
   && grep -q 'RegenerateDaggerPadLayoutIfMissing("accessibility-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "simplified, gesture, and accessibility layouts are bundled" \
   || fail "DaggerPad control presets are missing"
-grep -q 'DaggerPadPresetVersion = 9' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+grep -q 'DaggerPadPresetVersion = 10' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'daggerPadPresetVersion >= DaggerPadPresetVersion' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "built-in touch presets migrate forward without replacing custom layouts" \
   || fail "DaggerPad preset migration guard is missing"
@@ -94,6 +94,18 @@ grep -q 'button.Name == "toggle-run" ? "RUN OFF"' Assets/Android/Scripts/Touchsc
   && grep -q 'new Vector2(108, 108)' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "Run state is visible and Attack has a larger hit target" \
   || fail "DaggerPad Run or Attack feedback is incomplete"
+grep -q 'UpdateDaggerPadContextualText()' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"enter-key" => !GameManager.HasInstance || GameManager.IsGamePaused ? "ENTER"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"escape" => GameManager.HasInstance && !GameManager.IsGamePaused ? "PAUSE" : "BACK"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"drawer" => isDrawerOpen ? "CLOSE" : "MORE"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"edit-controls" => TouchscreenInputManager.Instance.*"DONE" : "EDIT"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"auto-map" => "LOCAL MAP"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q 'Hold any button to see its name' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
+  && pass "contextual command labels and control-name hint are configured" \
+  || fail "DaggerPad contextual command labels are incomplete"
+grep -q 'dummyInputField.ActivateInputField()' Assets/Android/Scripts/TouchscreenKeyboardManager.cs \
+  && pass "touch text entry explicitly requests the software keyboard" \
+  || fail "DaggerPad software keyboard activation is incomplete"
 grep -q 'PlayerPrefs.GetString("TouchscreenLayoutsManager_LastSelectedLayout", "simplified-layout")' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'layout.leftJoystickEnabled = true' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && grep -q 'layout.rightJoystickEnabled = false' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \

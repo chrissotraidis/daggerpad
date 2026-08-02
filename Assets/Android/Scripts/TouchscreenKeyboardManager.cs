@@ -88,6 +88,7 @@ namespace DaggerfallWorkshop.Game
             dummyInputField.text = textBox.Text;
             dummyInputField.gameObject.SetActive(true);
             dummyInputField.Select();
+            dummyInputField.ActivateInputField();
         }
         public void ToggleKeyboardOff()
         {

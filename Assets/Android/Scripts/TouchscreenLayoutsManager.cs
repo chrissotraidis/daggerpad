@@ -12,7 +12,7 @@ namespace DaggerfallWorkshop.Game
 {
     public class TouchscreenLayoutsManager : MonoBehaviour
     {
-        private const int DaggerPadPresetVersion = 9;
+        private const int DaggerPadPresetVersion = 10;
         private const string DaggerPadSelectionMigrationKey = "DaggerPad_iOSDefaultSelectionVersion";
 
         public static TouchscreenLayoutsManager Instance{get; private set;}
@@ -847,7 +847,10 @@ namespace DaggerfallWorkshop.Game
                 anchor == TouchscreenButtonAnchor.TopMiddle ? TouchscreenButtonAnchor.BottomMiddle : TouchscreenButtonAnchor.TopMiddle;
             button.DefaultPosition = button.Position = position;
             button.DefaultScale = button.Scale = scale;
-            button.Text = button.Name == "enter-key" ? "ENTER" :
+            button.Text = button.Name == "enter-key" ? "POINTER" :
+                button.Name == "escape" ? "PAUSE" :
+                button.Name == "drawer" ? "MORE" :
+                button.Name == "edit-controls" ? "EDIT" :
                 button.Name == "jump" ? "JUMP" :
                 button.Name == "mount-toggle" ? "MOUNT" :
                 button.Name == "toggle-run" ? "RUN OFF" : "";
@@ -864,10 +867,10 @@ namespace DaggerfallWorkshop.Game
                 "jump" => "daggerpad_button_frame",
                 "ready-weapon" => "daggerpad_ready",
                 "inventory" => "daggerpad_inventory",
-                "escape" => "daggerpad_pause",
+                "escape" => "daggerpad_button_frame",
                 "enter-key" => "daggerpad_button_frame",
-                "drawer" => "daggerpad_more",
-                "edit-controls" => "daggerpad_settings",
+                "drawer" => "daggerpad_button_frame",
+                "edit-controls" => "daggerpad_button_frame",
                 "auto-map" => "daggerpad_automap",
                 "rest" => "daggerpad_rest",
                 "quick-save" => "daggerpad_save",
@@ -925,6 +928,7 @@ namespace DaggerfallWorkshop.Game
                 PlayerPrefs.GetInt("DaggerPadControlHintVersion", 0) < DaggerPadPresetVersion)
             {
                 DaggerfallUI.AddHUDText("LEFT: move   RIGHT: look + double-tap use", 4f);
+                DaggerfallUI.AddHUDText("Hold any button to see its name.", 4f);
                 PlayerPrefs.SetInt("DaggerPadControlHintVersion", DaggerPadPresetVersion);
                 PlayerPrefs.Save();
             }

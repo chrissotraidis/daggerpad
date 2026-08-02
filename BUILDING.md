@@ -2,7 +2,7 @@
 
 This is the shortest supported path from a fresh clone to a running iPad build.
 
-For the current version 9 touch map, in-place update rules, device commands, and physical acceptance checklist, see [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md).
+For the current version 10 touch map, in-place update rules, device commands, and physical acceptance checklist, see [iPad setup and controls](docs/IPAD_SETUP_AND_CONTROLS.md).
 
 ## Prerequisites
 

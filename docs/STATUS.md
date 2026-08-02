@@ -1,6 +1,17 @@
 # DaggerPad implementation status
 
-Date: 2026-08-01
+Date: 2026-08-02
+
+## Version 10 contextual command labels
+
+- The bottom command strip now names what each control will do: Pointer / Look, More / Close, Pause / Back, and Edit / Done. Text-entry and classic dialog contexts show Enter and Back.
+- Automap's held-control name is now `LOCAL MAP`, distinguishing it from the travel map, and a first-run hint explains that any control can be held to reveal its name.
+- Tapping a writable Daggerfall text field now explicitly activates the hidden iPad input field that requests Apple's software keyboard.
+- The change is deliberately limited to labels and framed button artwork. Control positions, hit targets, input bindings, and the accepted gameplay behavior are unchanged.
+- Preset migration advances to version 10 for the three built-in layouts only. User-created layouts remain untouched.
+- The source gate, Unity device export, nine-point Xcode export gate, automatic signing, arm64 build, and strict code-signature verification passed.
+- The build installed over `com.chrissotraidis.daggerpad` on the paired 12.9-inch iPad Pro without uninstalling it. `SAVE0`, `SAVE1`, and `SAVE2` retained their prior timestamps, and the launched process was live after installation.
+- Loading gameplay is still required to trigger device-side preset migration and visually accept the contextual labels. Detached-keyboard software-keyboard behavior, physical touch feel, and longer performance checks also remain open.
 
 ## Version 9 touch usability controls
 
