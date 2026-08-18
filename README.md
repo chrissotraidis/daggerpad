@@ -43,7 +43,7 @@ contain Daggerfall, Bethesda game data, or a prepared playable archive.
 
 | Option | Status | What to do |
 |---|---|---|
-| Public `.ipa` | **Not published** | DaggerPad does not currently provide a downloadable binary. Build and sign it locally with your Apple ID. |
+| Public `.ipa` | **Preview 1 published** | Download [`DaggerPad-0.1.0-preview.1-unsigned.ipa`](https://github.com/chrissotraidis/daggerpad/releases/download/v0.1.0-preview.1/DaggerPad-0.1.0-preview.1-unsigned.ipa), then sign it with your own Apple ID before sideloading. |
 | Local development `.ipa` | **Verified August 2, 2026** | A development-signed Release IPA was built, audited, installed, and launched on the physical test iPad. It remains a local, ignored artifact tied to the builder's Apple development profile. |
 | Local iPad build | **Available now** | Follow the fresh-clone instructions below, then sign the generated Xcode project with your Apple development team. |
 | Simulator | **Available now** | Best for setup, UI, and repeatable smoke testing; it is not a substitute for physical-device testing. |
@@ -61,18 +61,19 @@ current physical-iPad captures below confirm the version 10 labels, gameplay,
 classic interfaces, and layout editor. Software-keyboard behavior without an
 attached physical keyboard and long-session performance remain open checks.
 
-The latest package check used a separate clean checkout at source commit
-`80cd8e5`, Unity `2022.3.62f3`, and Xcode 26.6 to produce a signed arm64
-Release app and the local `DaggerPad-0.1.0-80cd8e5-development.ipa`. The 60 MiB
-IPA passed ZIP integrity, strict code-signature, bundle, architecture, iOS 15
-deployment-floor, and game-data-exclusion checks; its SHA-256 is
-`bf2d5efe5f68d5c2a919e541d422a3fd03d44149c2d02a19a0a7e58a031c4361`.
-An in-place install on the 12.9-inch M2 iPad Pro running iPadOS 26.5.2 preserved
-all 39 save-container entries. A fresh launch remained live through the device
-process check and rendered the expected native landscape setup screen, Files
-path, controls, and Play flow. This is build, packaging, installation, launch,
-and visual smoke evidence; it does not replace hands-on control or long-session
-performance testing.
+Preview 1 uses the same clean arm64 Release app produced at source commit
+`80cd8e5` with Unity `2022.3.62f3` and Xcode 26.6. The public package strips the
+builder's signature and provisioning profile, includes the project and
+third-party notices, and contains no Daggerfall game data or saves. Its SHA-256
+is `d14544e950c8aee756822fbc4bc03f8922644173aa433bae5d7c09d0787de067`.
+
+On August 18, 2026, that exact unsigned IPA was extracted, re-signed with a
+local Apple development identity, verified strictly, installed in place on the
+12.9-inch M2 iPad Pro, and launched. The process remained live and the existing
+36-file save tree matched byte-for-byte after installation. The underlying app
+had already passed the native landscape visual smoke shown below. This proves
+the downloadable payload can be re-signed, installed, and launched; it does
+not replace hands-on control or long-session performance testing.
 
 ## Get started
 
@@ -340,18 +341,20 @@ game files, saves, and local evidence are ignored and must never be committed.
 - Physical controller mappings, sustained performance, thermals, battery use,
   memory, interruption recovery, and a desktop-to-iPad save round trip still
   need broader device testing.
-- No public IPA, App Store build, or TestFlight is currently offered.
+- Preview 1 is offered as an unsigned sideload IPA. No App Store build or
+  public TestFlight is currently offered.
 
 ## Frequently asked questions
 
 <details>
 <summary><strong>Where is the IPA?</strong></summary>
 
-There is no public DaggerPad IPA yet. A local development-signed IPA has been
-built and verified on the physical test iPad, but it is tied to the builder's
-Apple development profile and is not committed or published. Build the app
-locally, select your Apple development team in Xcode, and install it with your
-own signing identity.
+Download the unsigned Preview 1 IPA from the
+[GitHub release](https://github.com/chrissotraidis/daggerpad/releases/tag/v0.1.0-preview.1).
+It does not contain a provisioning profile and will not install directly:
+re-sign it with your own Apple ID using your normal sideload workflow. You can
+also build locally, select your Apple development team in Xcode, and install
+from source. Neither route includes Daggerfall game data.
 </details>
 
 <details>

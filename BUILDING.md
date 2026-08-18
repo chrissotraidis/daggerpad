@@ -52,6 +52,28 @@ A free Apple developer account installs a development build for a limited signin
 
 Then open the generated Xcode project and sign it as described above.
 
+## Package an unsigned IPA
+
+After Xcode has produced a signed Release `DaggerPad.app`, create the same kind
+of re-signable package used for public previews:
+
+```bash
+bash scripts/package-ios-ipa.sh
+```
+
+The default input is the Release app under
+`Builds/iOS/DeviceDerivedData/Build/Products/Release-iphoneos/`; optional app
+and output paths can be passed as the first and second arguments. The script
+copies the app, bundles the project and third-party notices, removes the local
+signature and provisioning profile, creates the IPA, and checks its ZIP,
+bundle, version, architecture, iOS floor, notices, game-data exclusion, and
+trace-instrumentation exclusion. It prints the final SHA-256.
+
+The result is deliberately unsigned. It must be signed with the installer's
+Apple identity and a compatible provisioning profile before iPadOS will accept
+it. Never add game data, saves, or a personal provisioning profile to a public
+release asset.
+
 ## iPad Simulator
 
 Install the verified runtime if needed:

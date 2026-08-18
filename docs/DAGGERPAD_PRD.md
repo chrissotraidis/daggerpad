@@ -114,7 +114,7 @@ Facts that de-risk a later 2022.3 → 6.3 migration: the **Built-in Render Pipel
 | B10 | LOW | Two unguarded `Process.Start` "open folder" click handlers throw on iOS if tapped | `DaggerfallUnitySetupGameWizard.cs:701` (fork), `DaggerfallUnitySaveGameWindow.cs:691` (both) **[V]** | `#if UNITY_IOS` guard → open Files app URL or hide button |
 | B11 | LOW | Android "restart app" flows (`AndroidUtils.RestartAndroid`) have no iOS equivalent (iOS apps cannot relaunch themselves) | `AndroidUtils.cs` **[V]** | Replace with "please close and reopen DaggerPad" prompt |
 | B12 | LOW | Bundle ID still `com.Company.ProductName`; landscape/orientation, ProMotion, `targetFrameRate` (mobile default renders at 30 fps) unset for iOS | `ProjectSettings.asset` **[V]** | Trivial project-settings pass in Phase 1 |
-| B13 | LOW | Fan-made `TESFonts` pack in `Assets/Resources/Fonts/TESFonts/` has no clear license and mimics Bethesda typefaces | legal audit **[V]** | Audit before any distributed build; replace or obtain clarity |
+| B13 | LOW | Fan-made `TESFonts` pack in `Assets/Resources/Fonts/TESFonts/` needs its bundled permission notice preserved and still merits storefront review | bundled `Readme_TES_Fonts.txt` permits use without additional permission **[V]** | Preview packaging now includes the notice; retain legal review before any store or marketplace submission |
 
 Nothing found rises to "potentially project-killing" for personal builds. The kill risks are concentrated in public distribution (§12) and B1's fallback failing (§15 kill conditions).
 
@@ -336,7 +336,7 @@ A `.dfmod` **is a Unity AssetBundle**. `ModManager` scans `StreamingAssets/Mods`
 ### Engine licensing **[V]**
 
 - DFU and the Vwing fork are **MIT** ("Copyright (c) 2009-2023 Daggerfall Workshop"). Obligation: include the copyright + permission notice in the app (About/credits screen + bundled licenses file). No copyleft.
-- Bundled third-party: Daggerfall Connect (MIT), C# Synth (MIT), FullSerializer (MIT), INI File Parser (MIT), Unity Console (MIT), SharpZipLib (fork), NativeFilePicker (yasirkula, MIT), `mcs` compiler pieces (MIT/X11 — being removed anyway), Unity postprocessing (Unity Companion License — fine inside a Unity app), Open Sans (check its License! file), **TESFonts pack — no clear license, mimics Bethesda typefaces → audit/replace before distribution (B13) [LAWYER]**.
+- Bundled third-party: Daggerfall Connect (MIT), C# Synth (MIT), FullSerializer (MIT), INI File Parser (MIT), Unity Console (MIT), SharpZipLib (fork), NativeFilePicker (yasirkula, MIT), `mcs` compiler pieces (MIT/X11 — being removed anyway), Unity postprocessing (Unity Companion License — fine inside a Unity app), Open Sans (Apache 2.0 notice), and the **TESFonts pack, whose bundled resource notice permits use without requesting additional permission**. Preview packaging preserves these available notices; storefront distribution still remains a legal-review gate (B13) **[V/LAWYER]**.
 
 ### Game data & Bethesda posture
 

@@ -1,6 +1,27 @@
 # DaggerPad implementation status
 
-Date: 2026-08-02
+Date: 2026-08-18
+
+## Preview 1 unsigned IPA
+
+- The public `v0.1.0-preview.1` prerelease contains
+  `DaggerPad-0.1.0-preview.1-unsigned.ipa`, a 61,116,938-byte arm64 package for
+  iPadOS 15 or later.
+- SHA-256:
+  `d14544e950c8aee756822fbc4bc03f8922644173aa433bae5d7c09d0787de067`.
+- The package was derived from the previously verified clean Release app at
+  source commit `80cd8e5`. Packaging strips the development signature and
+  provisioning profile, adds project and third-party notices, and rejects
+  game data, saves, or `DaggerPadInputTrace` instrumentation.
+- The exact unsigned asset passed ZIP, payload, bundle identifier, version,
+  arm64, iOS 15 floor, notices, and exclusion checks. It was then extracted,
+  re-signed locally, strictly verified, installed over the existing app on the
+  12.9-inch M2 iPad Pro, and launched as a live process.
+- Device read-back found the existing 36-file save tree byte-for-byte unchanged
+  after the in-place install. The preview does not include Daggerfall data.
+- This closes public sideload packaging and installability. App Store,
+  TestFlight, long-session stability, thermals, and the remaining hands-on
+  input checks are still open.
 
 ## Version 10 contextual command labels
 
