@@ -159,7 +159,7 @@ else
   pass "native ZIP pickers use platform file-type conversion"
 fi
 
-bash -n scripts/verify-source.sh scripts/prepare-game-data.sh scripts/verify-xcode-export.sh scripts/run-simulator-smoke.sh
+bash -n scripts/verify-source.sh scripts/prepare-game-data.sh scripts/verify-xcode-export.sh scripts/run-simulator-smoke.sh scripts/package-ios-ipa.sh
 pass "build and simulator harness scripts parse"
 
 if (( $# == 1 )) || [[ -e "$default_dagger" ]]; then
