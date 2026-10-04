@@ -12,6 +12,8 @@
   <a href="#what-works"><img alt="Metal renderer" src="https://img.shields.io/badge/renderer-Metal-5E5CE6"></a>
   <a href="docs/STATUS.md"><img alt="Physical iPad build verified" src="https://img.shields.io/badge/physical%20iPad-build%20verified-30D158"></a>
   <a href="#first-launch"><img alt="Game data not included" src="https://img.shields.io/badge/game%20data-not%20included-FF453A"></a>
+  <a href="https://github.com/chrissotraidis/padmint"><img alt="DaggerPad setup in PadMint" src="https://img.shields.io/badge/PadMint-guided%20setup-3EB489"></a>
+  <a href="https://discord.gg/xwHfUD2bxW"><img alt="Join the DaggerPad Discord" src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&amp;logoColor=white"></a>
 </p>
 
 <p align="center">
@@ -38,6 +40,13 @@ The mobile baseline comes from
 with iPadOS integration, native pointer input, Files import, lifecycle handling,
 and DaggerPad's touch layouts maintained in this repository. It does **not**
 contain Daggerfall, Bethesda game data, or a prepared playable archive.
+
+> [!NOTE]
+> **AI disclosure:** DaggerPad uses substantial AI assistance for code, tests,
+> documentation, debugging and maintenance. Some support replies and maintenance
+> tasks are automated. There is no audited percentage of AI-generated code.
+> Build, test and device records describe what was checked. This disclosure
+> concerns DaggerPad's workflow, not the authorship of its upstream projects.
 
 ## Install status
 
@@ -440,6 +449,16 @@ Use [GitHub Issues](https://github.com/chrissotraidis/daggerpad/issues) for
 reproducible gameplay or platform defects. Include the DaggerPad commit, iPad
 model, iPadOS version, and exact reproduction steps. Never attach or request
 game data, prepared archives, or saves containing copyrighted material.
+
+## Community and support
+
+[Join the Discord](https://discord.gg/xwHfUD2bxW) for help and news. It is one
+community for DaggerPad and its sibling projects, such as KartPad, BlueWake and
+MeleePad: ask about setup and installing, share how it runs on your device, and
+hear about new releases first.
+
+Found a bug? [Open an issue](https://github.com/chrissotraidis/daggerpad/issues)
+with your device, its OS version, and the steps that led to it.
 
 ## Legal and acknowledgements
 
