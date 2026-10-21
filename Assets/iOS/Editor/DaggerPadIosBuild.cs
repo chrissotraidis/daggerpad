@@ -95,6 +95,7 @@ namespace DaggerPad.Editor
             plist.root.SetBoolean("LSSupportsOpeningDocumentsInPlace", true);
             plist.root.SetBoolean("UIApplicationSupportsIndirectInputEvents", true);
             plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+            AddSceneManifest(plist);
             plist.WriteToFile(plistPath);
 
             string projectPath = PBXProject.GetPBXProjectPath(buildPath);
@@ -115,6 +116,20 @@ namespace DaggerPad.Editor
         {
             project.SetBuildProperty(targetGuid, "IPHONEOS_DEPLOYMENT_TARGET", MinimumIosVersion);
             project.SetBuildProperty(targetGuid, "TARGETED_DEVICE_FAMILY", "2");
+        }
+
+        // Apps built with the iOS 27 SDK must start through UIKit scenes or iOS 27
+        // closes them at launch. DaggerPadSceneDelegate (Plugins/iOS) connects
+        // Unity's window and lifecycle to the single application scene.
+        private static void AddSceneManifest(PlistDocument plist)
+        {
+            PlistElementDict manifest = plist.root.CreateDict("UIApplicationSceneManifest");
+            manifest.SetBoolean("UIApplicationSupportsMultipleScenes", false);
+            PlistElementArray application = manifest.CreateDict("UISceneConfigurations")
+                .CreateArray("UIWindowSceneSessionRoleApplication");
+            PlistElementDict configuration = application.AddDict();
+            configuration.SetString("UISceneConfigurationName", "DaggerPad");
+            configuration.SetString("UISceneDelegateClassName", "DaggerPadSceneDelegate");
         }
 
         private static void PatchFrameworkMinimumOs(string buildPath)
