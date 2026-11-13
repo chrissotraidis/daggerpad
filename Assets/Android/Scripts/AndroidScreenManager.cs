@@ -7,19 +7,36 @@ namespace DaggerfallWorkshop.Game
 {
     public static class AScreen
     {
+        // iOS: the game surface (Unity's view, bounds x scale), which follows a resized
+        // iPad window. Screen.width/height there is the render resolution that
+        // SetScreenResolution requests, and currentResolution is the display's.
         /// <summary>
         /// Platform-independent screen width
         /// </summary>
         public static int width
         {
-            get { return Application.isMobilePlatform || AndroidUtils.IsRunningInSimulator ? Screen.currentResolution.width : Screen.width; }
+            get
+            {
+#if UNITY_IOS && !UNITY_EDITOR
+                if (Display.main.systemWidth > 0)
+                    return Display.main.systemWidth;
+#endif
+                return Application.isMobilePlatform || AndroidUtils.IsRunningInSimulator ? Screen.currentResolution.width : Screen.width;
+            }
         }
         /// <summary>
         /// Platform-independent screen height
         /// </summary>
         public static int height
         {
-            get { return Application.isMobilePlatform || AndroidUtils.IsRunningInSimulator ? Screen.currentResolution.height : Screen.height; }
+            get
+            {
+#if UNITY_IOS && !UNITY_EDITOR
+                if (Display.main.systemHeight > 0)
+                    return Display.main.systemHeight;
+#endif
+                return Application.isMobilePlatform || AndroidUtils.IsRunningInSimulator ? Screen.currentResolution.height : Screen.height;
+            }
         }
     }
 
