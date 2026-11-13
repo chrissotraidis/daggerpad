@@ -45,7 +45,10 @@ namespace DaggerfallWorkshop.Game
         [SerializeField] private VirtualJoystick leftJoystick, rightJoystick;
         private Dictionary<string, bool> allButtonDefaultValues = new Dictionary<string, bool>();
         private readonly Dictionary<TouchscreenButton, bool> gameplayButtonStates = new Dictionary<TouchscreenButton, bool>();
-        private bool daggerfallGUIActive;
+        // Which buttons stay while the rest give way: a Daggerfall menu keeps BACK and ENTER; a
+        // controller keeps PAUSE and the MORE button, which then shows the controls again.
+        private enum Restriction { None, DaggerfallGUI, HiddenByController }
+        private Restriction restriction;
 
         private bool hasShownPopup = true; // set to false if you want to show a popup to the user when disabling a button
         private void Awake()
@@ -76,7 +79,7 @@ namespace DaggerfallWorkshop.Game
         public void ReturnAllButtonsToPool()
         {
             gameplayButtonStates.Clear();
-            daggerfallGUIActive = false;
+            restriction = Restriction.None;
             List<TouchscreenButton> allButtonsCopy = new(allButtons);
             foreach(var b in allButtonsCopy){
                 ReturnButtonToPool(b);
@@ -137,31 +140,37 @@ namespace DaggerfallWorkshop.Game
                 button.CloseDrawerForEditing();
         }
 
-        public void SetDaggerfallGUIActive(bool isActive)
+        public void SetRestriction(bool daggerfallGUIActive, bool hiddenByController)
         {
-            if (daggerfallGUIActive == isActive)
+            Restriction next = daggerfallGUIActive ? Restriction.DaggerfallGUI :
+                hiddenByController ? Restriction.HiddenByController : Restriction.None;
+            if (next == restriction)
                 return;
 
-            daggerfallGUIActive = isActive;
-            if (isActive)
+            if (restriction == Restriction.None)
             {
                 gameplayButtonStates.Clear();
                 foreach (TouchscreenButton button in allButtons)
-                {
                     gameplayButtonStates[button] = button.gameObject.activeSelf;
-                    bool isMenuControl = button.gameObject.name == "escape" || button.gameObject.name == "enter-key";
-                    button.gameObject.SetActive(isMenuControl && button.gameObject.activeSelf);
-                }
             }
-            else
+            restriction = next;
+            foreach (KeyValuePair<TouchscreenButton, bool> state in gameplayButtonStates)
             {
-                foreach (KeyValuePair<TouchscreenButton, bool> state in gameplayButtonStates)
-                {
-                    if (state.Key)
-                        state.Key.gameObject.SetActive(state.Value);
-                }
-                gameplayButtonStates.Clear();
+                if (!state.Key)
+                    continue;
+                string name = state.Key.gameObject.name;
+                bool keep = next == Restriction.None ||
+                    next == Restriction.DaggerfallGUI && (name == "escape" || name == "enter-key") ||
+                    next == Restriction.HiddenByController && (name == "escape" || name == "drawer");
+                state.Key.gameObject.SetActive(keep && state.Value);
             }
+            if (next == Restriction.None)
+                gameplayButtonStates.Clear();
+        }
+        public void ReleaseJoysticks()
+        {
+            leftJoystick.OnPointerUp(null);
+            rightJoystick.OnPointerUp(null);
         }
         public TouchscreenButton GetButtonBehaviour(string buttonName)
         {

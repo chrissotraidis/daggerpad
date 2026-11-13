@@ -59,6 +59,7 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         protected Checkbox enableControllerCheckbox = new Checkbox();
 #if UNITY_ANDROID || UNITY_IOS
         protected Checkbox enableOnScreenControlsCheckbox = new Checkbox();
+        protected Checkbox autoHideOnScreenControlsCheckbox = new Checkbox();
 #endif
         protected Checkbox invertMovementHorizontalCheckbox = new Checkbox();
         protected Checkbox invertMovementVerticalCheckbox = new Checkbox();
@@ -146,6 +147,10 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
 #if UNITY_ANDROID || UNITY_IOS
             enableOnScreenControlsCheckbox = AddOption(80, 20, GetText("enableOnScreenControls"), TouchscreenInputManager.IsTouchscreenInputEnabled);
             enableOnScreenControlsCheckbox.OnToggleState += EnableOnScreenControlsCheckbox_OnToggleState;
+            // "Auto-hide Touch Controls with Controller". Tapping SHOW (the MORE button while a
+            // controller hides the controls) turns it off.
+            autoHideOnScreenControlsCheckbox = AddOption(80, 29, "Auto-hide with Controller", TouchscreenInputManager.AutoHideWithController);
+            autoHideOnScreenControlsCheckbox.OnToggleState += AutoHideOnScreenControlsCheckbox_OnToggleState;
 #endif
 
             // keybind buttons
@@ -537,6 +542,10 @@ namespace DaggerfallWorkshop.Game.UserInterfaceWindows
         {
             // Immediately toggle controller
             TouchscreenInputManager.IsTouchscreenInputEnabled = enableOnScreenControlsCheckbox.IsChecked;
+        }
+        private void AutoHideOnScreenControlsCheckbox_OnToggleState()
+        {
+            TouchscreenInputManager.AutoHideWithController = autoHideOnScreenControlsCheckbox.IsChecked;
         }
 #endif
 

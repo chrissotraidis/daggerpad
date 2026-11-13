@@ -210,7 +210,7 @@ namespace DaggerfallWorkshop.Game
                 "enter-key" => !GameManager.HasInstance || GameManager.IsGamePaused ? "ENTER" :
                     GameManager.Instance.PlayerMouseLook.cursorActive ? "LOOK" : "POINTER",
                 "escape" => GameManager.HasInstance && !GameManager.IsGamePaused ? "PAUSE" : "BACK",
-                "drawer" => isDrawerOpen ? "CLOSE" : "MORE",
+                "drawer" => TouchscreenInputManager.IsHiddenByController ? "SHOW" : isDrawerOpen ? "CLOSE" : "MORE",
                 "edit-controls" => TouchscreenInputManager.Instance && TouchscreenInputManager.Instance.IsEditingControls ? "DONE" : "EDIT",
                 _ => null,
             };
@@ -877,7 +877,11 @@ namespace DaggerfallWorkshop.Game
             image.color = new Color(1f, 0.78f, 0.32f, spriteColor.a);
             transform.localScale = pointerDownLocalScale * 0.88f;
 
-            if(isButtonDrawer){
+            if(isButtonDrawer && TouchscreenInputManager.IsHiddenByController){
+                // A controller hid the controls; this button is SHOW until they are back.
+                TouchscreenInputManager.ShowTouchControls();
+            }
+            else if(isButtonDrawer){
                 if(isDrawerOpen){
                     shouldDrawerBeOpen = false;
                     CloseDrawer();

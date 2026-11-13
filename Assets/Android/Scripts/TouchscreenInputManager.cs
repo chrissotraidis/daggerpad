@@ -60,6 +60,8 @@ namespace DaggerfallWorkshop.Game
 
         private RenderTexture renderTex;
         private TouchscreenButton currentlyEditingButton;
+        private float nextControllerCheckTime;
+        private bool wasHiddenByController;
 
         private bool SetupSingleton()
         {
@@ -146,11 +148,33 @@ namespace DaggerfallWorkshop.Game
                 SetEditControlsActive(false);
 
             _isInDaggerfallGUI = !IsEditingControls && GameManager.IsGamePaused;
+            UpdateControllerVisibility();
             bool overlayVisible = IsTouchscreenInputEnabled && isMobilePlatform;
-            TouchscreenButtonEnableDisableManager.Instance.SetDaggerfallGUIActive(_isInDaggerfallGUI);
+            TouchscreenButtonEnableDisableManager.Instance.SetRestriction(_isInDaggerfallGUI, wasHiddenByController);
             canvas.enabled = overlayVisible;
             buttonsCanvas.enabled = overlayVisible;
             joystickCanvas.enabled = !IsEditingControls && IsTouchscreenActive;
+        }
+        // Unity's joystick list is the game's controller authority (InputManager reads those axes).
+        // Checked twice a second, so a controller present at launch, connected, disconnected or
+        // reconnected after a return to the foreground is picked up without a notification.
+        private void UpdateControllerVisibility()
+        {
+            if (Time.unscaledTime >= nextControllerCheckTime)
+            {
+                nextControllerCheckTime = Time.unscaledTime + 0.5f;
+                _controllerConnected = Input.GetJoystickNames().Any(name => !string.IsNullOrEmpty(name));
+            }
+            bool hidden = IsHiddenByController;
+            if (hidden == wasHiddenByController)
+                return;
+            wasHiddenByController = hidden;
+            if (hidden)
+            {
+                // Nothing hidden may stay held: sticks, gestures and buttons.
+                TouchscreenButtonEnableDisableManager.Instance.ReleaseJoysticks();
+                ClearInputState();
+            }
         }
         private void OnGUI()
         {
@@ -259,7 +283,24 @@ namespace DaggerfallWorkshop.Game
             get { return PlayerPrefs.GetInt("IsTouchscreenInputEnabled", 1) == 1; }
             set { PlayerPrefs.SetInt("IsTouchscreenInputEnabled", value ? 1 : 0); }
         }
-        public static bool IsTouchscreenActive => IsTouchscreenInputEnabled && isMobilePlatform && !_isInDaggerfallGUI;
+        // "Auto-hide Touch Controls with Controller": on when nothing is saved.
+        public static bool AutoHideWithController
+        {
+            get { return PlayerPrefs.GetInt("AutoHideTouchscreenWithController", 1) == 1; }
+            set { PlayerPrefs.SetInt("AutoHideTouchscreenWithController", value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+        // While a usable controller is connected and auto-hide is on, the gameplay controls give way.
+        // PAUSE and the MORE button stay; MORE becomes SHOW. Editing the layout shows everything.
+        public static bool IsHiddenByController => IsTouchscreenInputEnabled && isMobilePlatform &&
+            AutoHideWithController && _controllerConnected && DaggerfallUnity.Settings.EnableController &&
+            !(Instance && Instance.IsEditingControls);
+        public static bool IsTouchscreenActive => IsTouchscreenInputEnabled && isMobilePlatform && !_isInDaggerfallGUI && !IsHiddenByController;
+        // Show Touch Controls: bring them back with the controller still connected, and keep them
+        // until auto-hide is turned on again (Controls → Joystick).
+        public static void ShowTouchControls()
+        {
+            AutoHideWithController = false;
+        }
         public static bool IsTouchscreenTouched => IsTouchscreenActive && (axes.Any(p => p.Value != 0) || keys.Any(p => p.Value));
 
         private static Dictionary<int, float> axes = new Dictionary<int, float>();
@@ -267,6 +308,7 @@ namespace DaggerfallWorkshop.Game
         private static bool isMobilePlatform => Application.isMobilePlatform || Application.isEditor && _debugInEditor;
         private static bool _debugInEditor = false;
         private static bool _isInDaggerfallGUI = false;
+        private static bool _controllerConnected = false;
 
         public static void SetAxis(InputManager.AxisActions action, float value) => axes[(int)action] = value;
         public static void ClearInputState()
