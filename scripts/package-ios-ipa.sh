@@ -27,6 +27,8 @@ minimum_os="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app/Info.pl
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/daggerpad-ipa.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/Payload" "$(dirname "$output")"
+# zip runs inside $tmp, so a relative output path must be made absolute first.
+output="$(cd "$(dirname "$output")" && pwd)/$(basename "$output")"
 ditto "$app" "$tmp/Payload/DaggerPad.app"
 packaged_app="$tmp/Payload/DaggerPad.app"
 
