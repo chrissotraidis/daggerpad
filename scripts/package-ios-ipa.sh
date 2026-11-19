@@ -3,7 +3,7 @@ set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 default_app="$root/Builds/iOS/DeviceDerivedData/Build/Products/Release-iphoneos/DaggerPad.app"
-default_output="$root/Builds/iOS/Artifacts/DaggerPad-0.1.0-preview.1-unsigned.ipa"
+default_output="$root/Builds/iOS/Artifacts/DaggerPad-0.1.1-preview.3-unsigned.ipa"
 app="${1:-$default_app}"
 output="${2:-$default_output}"
 
@@ -21,7 +21,7 @@ version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/
 build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist")"
 minimum_os="$(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$app/Info.plist")"
 [[ "$bundle_id" == 'com.chrissotraidis.daggerpad' ]] || fail "unexpected bundle identifier: $bundle_id"
-[[ "$version" == '0.1.0' ]] || fail "unexpected version: $version"
+[[ "$version" == '0.1.1' ]] || fail "unexpected version: $version"
 [[ "$minimum_os" == '15.0' ]] || fail "unexpected minimum iOS version: $minimum_os"
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/daggerpad-ipa.XXXXXX")"

@@ -63,7 +63,21 @@ namespace DaggerPad.Editor
             if (!string.IsNullOrEmpty(addressablesResult.Error))
                 throw new BuildFailedException($"DaggerPad Addressables build failed: {addressablesResult.Error}");
 
-            BuildReport report = BuildPipeline.BuildPlayer(options);
+            bool portrait = PlayerSettings.allowedAutorotateToPortrait;
+            bool upsideDown = PlayerSettings.allowedAutorotateToPortraitUpsideDown;
+            BuildReport report;
+            try
+            {
+                // This exporter builds the iPad-only player. Restore shared settings for other builds.
+                PlayerSettings.allowedAutorotateToPortrait = true;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = true;
+                report = BuildPipeline.BuildPlayer(options);
+            }
+            finally
+            {
+                PlayerSettings.allowedAutorotateToPortrait = portrait;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = upsideDown;
+            }
             if (report.summary.result != BuildResult.Succeeded)
                 throw new BuildFailedException($"DaggerPad iOS export failed: {report.summary.result} ({report.summary.totalErrors} errors)");
 
@@ -95,6 +109,18 @@ namespace DaggerPad.Editor
             plist.root.SetBoolean("LSSupportsOpeningDocumentsInPlace", true);
             plist.root.SetBoolean("UIApplicationSupportsIndirectInputEvents", true);
             plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+            plist.root.SetBoolean("UIRequiresFullScreen", true);
+            plist.root.SetString("UIRequiresFullScreenIgnoredStartingWithVersion", "26");
+            var phoneOrientations = plist.root.CreateArray("UISupportedInterfaceOrientations");
+            phoneOrientations.AddString("UIInterfaceOrientationLandscapeLeft");
+            phoneOrientations.AddString("UIInterfaceOrientationLandscapeRight");
+            var padOrientations = plist.root.CreateArray("UISupportedInterfaceOrientations~ipad");
+            padOrientations.AddString("UIInterfaceOrientationPortrait");
+            padOrientations.AddString("UIInterfaceOrientationPortraitUpsideDown");
+            padOrientations.AddString("UIInterfaceOrientationLandscapeLeft");
+            padOrientations.AddString("UIInterfaceOrientationLandscapeRight");
+            var types = plist.root.CreateArray("CFBundleURLTypes");
+            types.AddDict().CreateArray("CFBundleURLSchemes").AddString("padmint-daggerpad");
             AddSceneManifest(plist);
             plist.WriteToFile(plistPath);
 
