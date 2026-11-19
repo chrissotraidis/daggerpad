@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 #import "UnityAppController.h"
+#import "Unity/UnityInterface.h"
 
 // Apps built with the iOS 27 SDK must start through UIKit scenes or iOS 27 closes
 // them at launch. Unity 2022.3's app controller still expects the app-level
@@ -8,6 +9,30 @@
 // application scene and forwards the scene lifecycle to the app controller.
 @interface DaggerPadSceneDelegate : UIResponder <UIWindowSceneDelegate>
 @end
+
+// The game view's size in pixels. Unity's Display.main answers min(view, render
+// resolution) for the iPad's own screen; on a TV (another UIScreen) the view is the
+// only size that matches what the player sees.
+extern "C" void DaggerPadViewPixelSize(int *width, int *height)
+{
+    UIView *view = UnityGetGLView();
+    if (view == nil)
+    {
+        *width = 0;
+        *height = 0;
+        return;
+    }
+    CGFloat scale = view.contentScaleFactor;
+    *width = (int)lround(view.bounds.size.width * scale);
+    *height = (int)lround(view.bounds.size.height * scale);
+}
+
+// 1 when the game's window is on a second screen (a TV or monitor).
+extern "C" int DaggerPadOnSecondScreen(void)
+{
+    UIWindowScene *scene = UnityGetGLView().window.windowScene;
+    return scene != nil && scene.screen != UIScreen.mainScreen ? 1 : 0;
+}
 
 @implementation DaggerPadSceneDelegate
 
