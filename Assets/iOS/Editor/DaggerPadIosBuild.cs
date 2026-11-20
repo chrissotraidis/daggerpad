@@ -136,6 +136,28 @@ namespace DaggerPad.Editor
             project.WriteToFile(projectPath);
 
             PatchFrameworkMinimumOs(buildPath);
+            PatchSecondScreenOrientation(buildPath);
+        }
+
+        // Unity tells portrait from landscape by comparing the screen's coordinate
+        // space with its fixed one. On a TV (an iPadOS extended display) the two are
+        // always the same, so Unity answered Portrait, swapped the game's width and
+        // height (1440x2560 on a 2560x1440 TV) and mapped every click wrongly. On a
+        // second screen the shape of the window decides.
+        private static void PatchSecondScreenOrientation(string buildPath)
+        {
+            string path = Path.Combine(buildPath, "Classes", "UI", "OrientationSupport.mm");
+            string source = File.ReadAllText(path);
+            const string marker = "UIInterfaceOrientation UIViewControllerInterfaceOrientation(UIViewController* c)\n{\n#if !PLATFORM_VISIONOS\n";
+            const string patch = "    UIWindow* daggerPadWindow = c.view.window;\n" +
+                "    if (daggerPadWindow != nil && daggerPadWindow.screen != [UIScreen mainScreen])\n" +
+                "        return daggerPadWindow.bounds.size.width >= daggerPadWindow.bounds.size.height\n" +
+                "            ? UIInterfaceOrientationLandscapeLeft : UIInterfaceOrientationPortrait;\n";
+            if (source.Contains("daggerPadWindow"))
+                return;
+            if (!source.Contains(marker))
+                throw new BuildFailedException("OrientationSupport.mm changed; the TV orientation patch no longer applies");
+            File.WriteAllText(path, source.Replace(marker, marker + patch));
         }
 
         private static void ConfigureTarget(PBXProject project, string targetGuid)
