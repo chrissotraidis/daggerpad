@@ -62,8 +62,7 @@ namespace DaggerPad.iOS
                         top = string.Format("{0} parent {1}{2}", window.GetType().Name, parent != null ? parent.Rectangle.ToString() : "-", native);
                     }
                 }
-                string line = string.Format("{0:u} click unity {1} input {2} screen {3}x{4} ascreen {5}x{6} orientation {7} safe {8} top {9}
-",
+                string line = string.Format("{0:u} click unity {1} input {2} screen {3}x{4} ascreen {5}x{6} orientation {7} safe {8} top {9}\n",
                     DateTime.UtcNow, Input.mousePosition, InputManager.Instance != null ? InputManager.Instance.MousePosition.ToString() : "-",
                     Screen.width, Screen.height, AScreen.width, AScreen.height, Screen.orientation, Screen.safeArea, top);
                 System.IO.File.AppendAllText(System.IO.Path.Combine(Application.persistentDataPath, "DaggerPad-display.log"), line);
