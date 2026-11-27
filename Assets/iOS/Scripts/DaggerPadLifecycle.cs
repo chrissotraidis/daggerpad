@@ -34,6 +34,46 @@ namespace DaggerPad.iOS
 #endif
         }
 
+        private int loggedClicks;
+
+        // The first 60 clicks of each launch, appended to Documents/DaggerPad-display.log:
+        // where Unity and Daggerfall's UI think the pointer is, and how the top window is
+        // laid out, so a menu that does not fit or answer on a TV can be read back.
+        private void LogClickGeometry()
+        {
+#if UNITY_IOS && !UNITY_EDITOR
+            if (loggedClicks >= 60 || !Input.GetMouseButtonDown(0))
+                return;
+            loggedClicks++;
+            try
+            {
+                string top = "none";
+                if (DaggerfallUI.Instance != null && DaggerfallUI.UIManager != null)
+                {
+                    var window = DaggerfallUI.UIManager.TopWindow as DaggerfallWorkshop.Game.UserInterface.UserInterfaceWindow;
+                    if (window != null)
+                    {
+                        var parent = window.ParentPanel;
+                        string native = "";
+                        var baseWindow = window as DaggerfallWorkshop.Game.UserInterfaceWindows.DaggerfallBaseWindow;
+                        if (baseWindow != null && baseWindow.NativePanel != null)
+                            native = string.Format(" native {0} scale {1} uimouse {2}", baseWindow.NativePanel.Rectangle,
+                                baseWindow.NativePanel.LocalScale, baseWindow.NativePanel.ScaledMousePosition);
+                        top = string.Format("{0} parent {1}{2}", window.GetType().Name, parent != null ? parent.Rectangle.ToString() : "-", native);
+                    }
+                }
+                string line = string.Format("{0:u} click unity {1} input {2} screen {3}x{4} ascreen {5}x{6} orientation {7} safe {8} top {9}\n",
+                    DateTime.UtcNow, Input.mousePosition, InputManager.Instance != null ? InputManager.Instance.MousePosition.ToString() : "-",
+                    Screen.width, Screen.height, AScreen.width, AScreen.height, Screen.orientation, Screen.safeArea, top);
+                System.IO.File.AppendAllText(System.IO.Path.Combine(Application.persistentDataPath, "DaggerPad-display.log"), line);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("DaggerPad click log: " + e.Message);
+            }
+#endif
+        }
+
         private void OnApplicationFocus(bool hasFocus)
         {
             if (!hasFocus)
@@ -42,6 +82,7 @@ namespace DaggerPad.iOS
 
         private void Update()
         {
+            LogClickGeometry();
             bool wantsPointerLock = GameManager.HasInstance &&
                 GameManager.Instance.PlayerMouseLook != null &&
                 GameManager.Instance.PlayerMouseLook.WantsPointerCapture;

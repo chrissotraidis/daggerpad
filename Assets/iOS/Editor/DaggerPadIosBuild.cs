@@ -63,7 +63,21 @@ namespace DaggerPad.Editor
             if (!string.IsNullOrEmpty(addressablesResult.Error))
                 throw new BuildFailedException($"DaggerPad Addressables build failed: {addressablesResult.Error}");
 
-            BuildReport report = BuildPipeline.BuildPlayer(options);
+            bool portrait = PlayerSettings.allowedAutorotateToPortrait;
+            bool upsideDown = PlayerSettings.allowedAutorotateToPortraitUpsideDown;
+            BuildReport report;
+            try
+            {
+                // This exporter builds the iPad-only player. Restore shared settings for other builds.
+                PlayerSettings.allowedAutorotateToPortrait = true;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = true;
+                report = BuildPipeline.BuildPlayer(options);
+            }
+            finally
+            {
+                PlayerSettings.allowedAutorotateToPortrait = portrait;
+                PlayerSettings.allowedAutorotateToPortraitUpsideDown = upsideDown;
+            }
             if (report.summary.result != BuildResult.Succeeded)
                 throw new BuildFailedException($"DaggerPad iOS export failed: {report.summary.result} ({report.summary.totalErrors} errors)");
 
@@ -95,6 +109,18 @@ namespace DaggerPad.Editor
             plist.root.SetBoolean("LSSupportsOpeningDocumentsInPlace", true);
             plist.root.SetBoolean("UIApplicationSupportsIndirectInputEvents", true);
             plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+            plist.root.SetBoolean("UIRequiresFullScreen", true);
+            plist.root.SetString("UIRequiresFullScreenIgnoredStartingWithVersion", "26");
+            var phoneOrientations = plist.root.CreateArray("UISupportedInterfaceOrientations");
+            phoneOrientations.AddString("UIInterfaceOrientationLandscapeLeft");
+            phoneOrientations.AddString("UIInterfaceOrientationLandscapeRight");
+            var padOrientations = plist.root.CreateArray("UISupportedInterfaceOrientations~ipad");
+            padOrientations.AddString("UIInterfaceOrientationPortrait");
+            padOrientations.AddString("UIInterfaceOrientationPortraitUpsideDown");
+            padOrientations.AddString("UIInterfaceOrientationLandscapeLeft");
+            padOrientations.AddString("UIInterfaceOrientationLandscapeRight");
+            var types = plist.root.CreateArray("CFBundleURLTypes");
+            types.AddDict().CreateArray("CFBundleURLSchemes").AddString("padmint-daggerpad");
             AddSceneManifest(plist);
             plist.WriteToFile(plistPath);
 
@@ -110,6 +136,28 @@ namespace DaggerPad.Editor
             project.WriteToFile(projectPath);
 
             PatchFrameworkMinimumOs(buildPath);
+            PatchSecondScreenOrientation(buildPath);
+        }
+
+        // Unity tells portrait from landscape by comparing the screen's coordinate
+        // space with its fixed one. On a TV (an iPadOS extended display) the two are
+        // always the same, so Unity answered Portrait, swapped the game's width and
+        // height (1440x2560 on a 2560x1440 TV) and mapped every click wrongly. On a
+        // second screen the shape of the window decides.
+        private static void PatchSecondScreenOrientation(string buildPath)
+        {
+            string path = Path.Combine(buildPath, "Classes", "UI", "OrientationSupport.mm");
+            string source = File.ReadAllText(path);
+            const string marker = "UIInterfaceOrientation UIViewControllerInterfaceOrientation(UIViewController* c)\n{\n#if !PLATFORM_VISIONOS\n";
+            const string patch = "    UIWindow* daggerPadWindow = c.view.window;\n" +
+                "    if (daggerPadWindow != nil && daggerPadWindow.screen != [UIScreen mainScreen])\n" +
+                "        return daggerPadWindow.bounds.size.width >= daggerPadWindow.bounds.size.height\n" +
+                "            ? UIInterfaceOrientationLandscapeLeft : UIInterfaceOrientationPortrait;\n";
+            if (source.Contains("daggerPadWindow"))
+                return;
+            if (!source.Contains(marker))
+                throw new BuildFailedException("OrientationSupport.mm changed; the TV orientation patch no longer applies");
+            File.WriteAllText(path, source.Replace(marker, marker + patch));
         }
 
         private static void ConfigureTarget(PBXProject project, string targetGuid)
