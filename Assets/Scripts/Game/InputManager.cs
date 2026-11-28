@@ -135,8 +135,14 @@ namespace DaggerfallWorkshop.Game
         {
             { (int)AxisActions.MovementHorizontal , "Axis1" },
             { (int)AxisActions.MovementVertical, "Axis2" },
+#if UNITY_IOS
+            // Unity numbers an iPad controller's right stick Axis3/Axis4.
+            { (int)AxisActions.CameraHorizontal, "Axis3" },
+            { (int)AxisActions.CameraVertical, "Axis4" },
+#else
             { (int)AxisActions.CameraHorizontal, "Axis4" },
             { (int)AxisActions.CameraVertical, "Axis5" },
+#endif
         };
         /// <summary>
         /// key: JoystickUIActions
@@ -144,11 +150,63 @@ namespace DaggerfallWorkshop.Game
         /// </summary>
         static readonly Dictionary<int, int> defaultJoystickUIBindings = new Dictionary<int, int>()
         {
+#if UNITY_IOS
+            // iPad numbering: A 14, B 13, X 15, Y 12 (button 0 is Menu).
+            { (int)JoystickUIActions.LeftClick , (int)KeyCode.JoystickButton14 },
+            { (int)JoystickUIActions.RightClick, (int)KeyCode.JoystickButton15 },
+            { (int)JoystickUIActions.MiddleClick, (int)KeyCode.JoystickButton12 },
+            { (int)JoystickUIActions.Back, (int)KeyCode.JoystickButton13 },
+#else
             { (int)JoystickUIActions.LeftClick , (int)KeyCode.JoystickButton0 },
             { (int)JoystickUIActions.RightClick, (int)KeyCode.JoystickButton3 },
             { (int)JoystickUIActions.MiddleClick, (int)KeyCode.JoystickButton2 },
             { (int)JoystickUIActions.Back, (int)KeyCode.JoystickButton1 },
+#endif
         };
+
+#if UNITY_IOS
+        // DaggerPad's controller scheme, as secondary bindings so the keyboard
+        // and touch bindings stay. Unity's iPad numbering: A 14, B 13, X 15,
+        // Y 12, L1 8, R1 9, L2 10, R2 11, d-pad up 4, right 5, down 6, left 7,
+        // Menu 0. Left stick moves, right stick looks.
+        static readonly Dictionary<int, int> defaultControllerActionBindings = new Dictionary<int, int>()
+        {
+            { (int)Actions.Escape, (int)KeyCode.JoystickButton0 },
+            { (int)Actions.ActivateCenterObject, (int)KeyCode.JoystickButton14 },
+            { (int)Actions.Jump, (int)KeyCode.JoystickButton13 },
+            { (int)Actions.ReadyWeapon, (int)KeyCode.JoystickButton15 },
+            { (int)Actions.CastSpell, (int)KeyCode.JoystickButton12 },
+            { (int)Actions.SwingWeapon, (int)KeyCode.JoystickButton11 },
+            { (int)Actions.RecastSpell, (int)KeyCode.JoystickButton10 },
+            { (int)Actions.Run, (int)KeyCode.JoystickButton9 },
+            { (int)Actions.CharacterSheet, (int)KeyCode.JoystickButton8 },
+            { (int)Actions.AutoMap, (int)KeyCode.JoystickButton4 },
+            { (int)Actions.Inventory, (int)KeyCode.JoystickButton5 },
+            { (int)Actions.Rest, (int)KeyCode.JoystickButton6 },
+            { (int)Actions.TravelMap, (int)KeyCode.JoystickButton7 },
+        };
+
+        // Earlier DaggerPad builds saved the Windows controller defaults, which
+        // read the wrong right-stick axes and put UI clicks on Menu. Replace
+        // them only while they are still exactly those defaults.
+        void UpdateSavedControllerDefaults()
+        {
+            if (GetAxisBinding(AxisActions.CameraHorizontal) == "Axis4" && GetAxisBinding(AxisActions.CameraVertical) == "Axis5")
+            {
+                SetAxisBinding("Axis3", AxisActions.CameraHorizontal);
+                SetAxisBinding("Axis4", AxisActions.CameraVertical);
+            }
+            if (GetJoystickUIBinding(JoystickUIActions.LeftClick) == KeyCode.JoystickButton0 &&
+                GetJoystickUIBinding(JoystickUIActions.RightClick) == KeyCode.JoystickButton3 &&
+                GetJoystickUIBinding(JoystickUIActions.MiddleClick) == KeyCode.JoystickButton2 &&
+                GetJoystickUIBinding(JoystickUIActions.Back) == KeyCode.JoystickButton1)
+            {
+                foreach (var kvp in defaultJoystickUIBindings)
+                    SetJoystickUIBinding((KeyCode)kvp.Value, (JoystickUIActions)kvp.Key);
+            }
+            UpdateBindingCache();
+        }
+#endif
 
         KeyCode[] keyCodeList;
         KeyCode[] reservedKeys = new KeyCode[] { };
@@ -572,7 +630,12 @@ namespace DaggerfallWorkshop.Game
             {
                 // Load a keybind file if possible
                 if (HasKeyBindsSave())
+                {
                     LoadKeyBinds();
+#if UNITY_IOS
+                    UpdateSavedControllerDefaults();
+#endif
+                }
 
                 // Ensure defaults are deployed if missing
                 ResetDefaults(true);
@@ -1188,6 +1251,11 @@ namespace DaggerfallWorkshop.Game
 
             foreach (var kvp in defaultJoystickUIBindings)
                 setJoystickUIBinding((KeyCode)kvp.Value, (JoystickUIActions)kvp.Key);
+
+#if UNITY_IOS
+            foreach (var kvp in defaultControllerActionBindings)
+                setBinding((KeyCode)kvp.Value, (Actions)kvp.Key, false);
+#endif
 
             UpdateBindingCache();
 

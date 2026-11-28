@@ -97,12 +97,19 @@ grep -q 'button.Name == "toggle-run" ? "RUN OFF"' Assets/Android/Scripts/Touchsc
 grep -q 'UpdateDaggerPadContextualText()' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q '"enter-key" => !GameManager.HasInstance || GameManager.IsGamePaused ? "ENTER"' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q '"escape" => GameManager.HasInstance && !GameManager.IsGamePaused ? "PAUSE" : "BACK"' Assets/Android/Scripts/TouchscreenButton.cs \
-  && grep -q '"drawer" => isDrawerOpen ? "CLOSE" : "MORE"' Assets/Android/Scripts/TouchscreenButton.cs \
+  && grep -q '"drawer" => TouchscreenInputManager.IsHiddenByController ? "SHOW" : isDrawerOpen ? "CLOSE" : "MORE"' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q '"edit-controls" => TouchscreenInputManager.Instance.*"DONE" : "EDIT"' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q '"auto-map" => "LOCAL MAP"' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q 'Hold any button to see its name' Assets/Android/Scripts/TouchscreenLayoutsManager.cs \
   && pass "contextual command labels and control-name hint are configured" \
   || fail "DaggerPad contextual command labels are incomplete"
+grep -q '{ (int)AxisActions.CameraHorizontal, "Axis3" },' Assets/Scripts/Game/InputManager.cs \
+  && grep -q '{ (int)JoystickUIActions.LeftClick , (int)KeyCode.JoystickButton14 },' Assets/Scripts/Game/InputManager.cs \
+  && grep -q '{ (int)Actions.ActivateCenterObject, (int)KeyCode.JoystickButton14 },' Assets/Scripts/Game/InputManager.cs \
+  && grep -q 'UpdateSavedControllerDefaults();' Assets/Scripts/Game/InputManager.cs \
+  && grep -q 'cursorActive && TouchscreenInputManager.IsHiddenByController' Assets/Scripts/Game/PlayerMouseLook.cs \
+  && pass "iPad controller scheme uses Unity's iOS numbering and hides the pointer" \
+  || fail "DaggerPad iPad controller scheme is incomplete"
 grep -q 'dummyInputField.ActivateInputField()' Assets/Android/Scripts/TouchscreenKeyboardManager.cs \
   && pass "touch text entry explicitly requests the software keyboard" \
   || fail "DaggerPad software keyboard activation is incomplete"
@@ -136,7 +143,7 @@ grep -q 'base.OnPointerDown(eventData)' Assets/Android/Scripts/TouchscreenButton
   && grep -q 'standard actions use their normal key binding' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q 'Weapon readied - tap ATTACK again' Assets/Android/Scripts/TouchscreenButton.cs \
   && grep -q 'USE / TAKE' Assets/Android/Scripts/TouchscreenButton.cs \
-  && grep -q 'SetDaggerfallGUIActive' Assets/Android/Scripts/TouchscreenInputManager.cs \
+  && grep -q 'SetRestriction(_isInDaggerfallGUI' Assets/Android/Scripts/TouchscreenInputManager.cs \
   && grep -q 'GetKeyUp(KeyCode.Escape, false)' Assets/Scripts/Game/InputManager.cs \
   && grep -q 'Pointer mode' Assets/Scripts/Game/PlayerMouseLook.cs \
   && pass "touch actions and keyboard pointer mode provide immediate feedback" \
