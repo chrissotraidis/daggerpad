@@ -222,6 +222,11 @@ namespace DaggerfallWorkshop.Game
                 }
             }
 
+            // While a controller drives play (touch controls hidden), stay in
+            // look mode; a pointer left on from touch play would stay on screen.
+            if (cursorActive && TouchscreenInputManager.IsHiddenByController)
+                cursorActive = false;
+
             // Show cursor and unlock while active
             // While cursor is active, player can click on objects in scene using mouse similar to activating centre object
             // Clicking on UI element of large HUD will instead operate on that UI
